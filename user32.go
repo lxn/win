@@ -1485,6 +1485,7 @@ var (
 	killTimer                  uintptr
 	loadCursor                 uintptr
 	loadIcon                   uintptr
+	loadBitmap                 uintptr
 	loadImage                  uintptr
 	loadMenu                   uintptr
 	loadString                 uintptr
@@ -1603,6 +1604,7 @@ func init() {
 	killTimer = MustGetProcAddress(libuser32, "KillTimer")
 	loadCursor = MustGetProcAddress(libuser32, "LoadCursorW")
 	loadIcon = MustGetProcAddress(libuser32, "LoadIconW")
+	loadBitmap = MustGetProcAddress(libuser32, "LoadBitmapW")
 	loadImage = MustGetProcAddress(libuser32, "LoadImageW")
 	loadMenu = MustGetProcAddress(libuser32, "LoadMenuW")
 	loadString = MustGetProcAddress(libuser32, "LoadStringW")
@@ -2224,6 +2226,15 @@ func LoadIcon(hInstance HINSTANCE, lpIconName *uint16) HICON {
 		0)
 
 	return HICON(ret)
+}
+
+func LoadBitmap(hInstance HINSTANCE, lpBitmapName *uint16) HBITMAP {
+	ret, _, _ := syscall.Syscall(loadBitmap, 2,
+		uintptr(hInstance),
+		uintptr(unsafe.Pointer(lpBitmapName)),
+		0)
+
+	return HBITMAP(ret)
 }
 
 func LoadImage(hinst HINSTANCE, lpszName *uint16, uType uint32, cxDesired, cyDesired int32, fuLoad uint32) HANDLE {
