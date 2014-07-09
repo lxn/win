@@ -73,6 +73,7 @@ var (
 	setLastError           uintptr
 	systemTimeToFileTime   uintptr
 	getProfileString       uintptr
+	createMutex            uintptr
 )
 
 type (
@@ -109,6 +110,12 @@ type SYSTEMTIME struct {
 	WMilliseconds uint16
 }
 
+type SECURITY_ATTRIBUTES struct {
+	NLength              uint32
+	LPSecurityDescriptor *uint16
+	BInheritHandle       bool
+}
+
 func init() {
 	// Library
 	libkernel32 = MustLoadLibrary("kernel32.dll")
@@ -132,7 +139,7 @@ func init() {
 	mulDiv = MustGetProcAddress(libkernel32, "MulDiv")
 	setLastError = MustGetProcAddress(libkernel32, "SetLastError")
 	systemTimeToFileTime = MustGetProcAddress(libkernel32, "SystemTimeToFileTime")
-
+	createMutex = MustGetProcAddress(libkernel32, "CreateMutexW")
 }
 
 func CloseHandle(hObject HANDLE) bool {
@@ -298,4 +305,20 @@ func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
 		0)
 
 	return ret != 0
+}
+
+func CreateMutex(lpMutexAttributes *SECURITY_ATTRIBUTES, bInitialOwner bool, lpName *uint16) (HANDLE, syscall.Errno) {
+	ret, _, err := syscall.Syscall(createMutex, 3,
+		uintptr(unsafe.Pointer(lpMutexAttributes)),
+		uintptr(boolToInt(bInitialOwner)),
+		uintptr(unsafe.Pointer(lpName)))
+
+	return HANDLE(ret), err
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
