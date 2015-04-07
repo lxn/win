@@ -4,6 +4,27 @@
 
 package win
 
+/*
+#include <pdh.h>
+
+typedef struct _PDH_FMT_COUNTERVALUE_DOUBLE {
+	DWORD  CStatus;
+	double doubleValue;
+} PDH_FMT_COUNTERVALUE_DOUBLE;
+
+typedef struct _PDH_FMT_COUNTERVALUE_LARGE {
+	DWORD    CStatus;
+	LONGLONG largeValue;
+} PDH_FMT_COUNTERVALUE_LARGE;
+
+typedef struct _PDH_FMT_COUNTERVALUE_LONG {
+	DWORD CStatus;
+	BYTE  padding[4];
+	LONG  longValue;
+} PDH_FMT_COUNTERVALUE_LONG;
+*/
+import "C"
+
 import (
 	"syscall"
 	"unsafe"
@@ -136,7 +157,6 @@ type PDH_FMT_COUNTERVALUE_LARGE struct {
 type PDH_FMT_COUNTERVALUE_LONG struct {
 	CStatus   uint32
 	LongValue int32
-	padding   [4]byte
 }
 
 // Union specialization for double values, used by PdhGetFormattedCounterArrayDouble()
@@ -291,11 +311,15 @@ func PdhCollectQueryData(hQuery PDH_HQUERY) uint32 {
 // Formats the given hCounter using a 'double'. The result is set into the specialized union struct pValue.
 // This function does not directly translate to a Windows counterpart due to union specialization tricks.
 func PdhGetFormattedCounterValueDouble(hCounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_FMT_COUNTERVALUE_DOUBLE) uint32 {
+	var value C.PDH_FMT_COUNTERVALUE_DOUBLE
 	ret, _, _ := pdh_GetFormattedCounterValue.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_DOUBLE),
 		uintptr(unsafe.Pointer(lpdwType)),
-		uintptr(unsafe.Pointer(pValue)))
+		uintptr(unsafe.Pointer(&value)))
+
+	pValue.CStatus = uint32(value.CStatus)
+	pValue.DoubleValue = float64(value.doubleValue)
 
 	return uint32(ret)
 }
@@ -303,11 +327,15 @@ func PdhGetFormattedCounterValueDouble(hCounter PDH_HCOUNTER, lpdwType *uint32, 
 // Formats the given hCounter using a large int (int64). The result is set into the specialized union struct pValue.
 // This function does not directly translate to a Windows counterpart due to union specialization tricks.
 func PdhGetFormattedCounterValueLarge(hCounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_FMT_COUNTERVALUE_LARGE) uint32 {
+	var value C.PDH_FMT_COUNTERVALUE_LARGE
 	ret, _, _ := pdh_GetFormattedCounterValue.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_LARGE),
 		uintptr(unsafe.Pointer(lpdwType)),
-		uintptr(unsafe.Pointer(pValue)))
+		uintptr(unsafe.Pointer(&value)))
+
+	pValue.CStatus = uint32(value.CStatus)
+	pValue.LargeValue = int64(value.largeValue)
 
 	return uint32(ret)
 }
@@ -321,11 +349,15 @@ func PdhGetFormattedCounterValueLarge(hCounter PDH_HCOUNTER, lpdwType *uint32, p
 // the Double or Large counterparts instead. These functions provide actually the same data, except in
 // a different, working format.
 func PdhGetFormattedCounterValueLong(hCounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_FMT_COUNTERVALUE_LONG) uint32 {
+	var value C.PDH_FMT_COUNTERVALUE_LONG
 	ret, _, _ := pdh_GetFormattedCounterValue.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_LONG),
 		uintptr(unsafe.Pointer(lpdwType)),
-		uintptr(unsafe.Pointer(pValue)))
+		uintptr(unsafe.Pointer(&value)))
+
+	pValue.CStatus = uint32(value.CStatus)
+	pValue.LongValue = int32(value.longValue)
 
 	return uint32(ret)
 }
