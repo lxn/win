@@ -7,16 +7,19 @@ package win
 /*
 #include <pdh.h>
 
+// Union specialization for double values
 typedef struct _PDH_FMT_COUNTERVALUE_DOUBLE {
 	DWORD  CStatus;
 	double doubleValue;
 } PDH_FMT_COUNTERVALUE_DOUBLE;
 
+// Union specialization for 64 bit integer values
 typedef struct _PDH_FMT_COUNTERVALUE_LARGE {
 	DWORD    CStatus;
 	LONGLONG largeValue;
 } PDH_FMT_COUNTERVALUE_LARGE;
 
+// Union specialization for long values
 typedef struct _PDH_FMT_COUNTERVALUE_LONG {
 	DWORD CStatus;
 	BYTE  padding[4];
@@ -141,19 +144,19 @@ type (
 	PDH_HCOUNTER HANDLE // counter handle
 )
 
-// Union specialization for double values
+// Go struct for double values
 type PDH_FMT_COUNTERVALUE_DOUBLE struct {
 	CStatus     uint32
 	DoubleValue float64
 }
 
-// Union specialization for 64 bit integer values
+// Go struct for 64 bit integer values
 type PDH_FMT_COUNTERVALUE_LARGE struct {
 	CStatus    uint32
 	LargeValue int64
 }
 
-// Union specialization for long values
+// Go struct for long values
 type PDH_FMT_COUNTERVALUE_LONG struct {
 	CStatus   uint32
 	LongValue int32
