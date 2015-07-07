@@ -252,6 +252,8 @@ func init() {
 }
 
 func ChooseColor(lpcc *CHOOSECOLOR) bool {
+	defer escape(unsafe.Pointer(lpcc))
+
 	ret, _, _ := syscall.Syscall(chooseColor, 1,
 		uintptr(unsafe.Pointer(lpcc)),
 		0,
@@ -270,6 +272,8 @@ func CommDlgExtendedError() uint32 {
 }
 
 func GetOpenFileName(lpofn *OPENFILENAME) bool {
+	defer escape(unsafe.Pointer(lpofn))
+
 	ret, _, _ := syscall.Syscall(getOpenFileName, 1,
 		uintptr(unsafe.Pointer(lpofn)),
 		0,
@@ -279,6 +283,8 @@ func GetOpenFileName(lpofn *OPENFILENAME) bool {
 }
 
 func GetSaveFileName(lpofn *OPENFILENAME) bool {
+	defer escape(unsafe.Pointer(lpofn))
+
 	ret, _, _ := syscall.Syscall(getSaveFileName, 1,
 		uintptr(unsafe.Pointer(lpofn)),
 		0,
@@ -288,6 +294,8 @@ func GetSaveFileName(lpofn *OPENFILENAME) bool {
 }
 
 func PrintDlgEx(lppd *PRINTDLGEX) HRESULT {
+	defer escape(unsafe.Pointer(lppd))
+
 	ret, _, _ := syscall.Syscall(printDlgEx, 1,
 		uintptr(unsafe.Pointer(lppd)),
 		0,

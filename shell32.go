@@ -195,6 +195,8 @@ func init() {
 }
 
 func SHBrowseForFolder(lpbi *BROWSEINFO) uintptr {
+	defer escape(unsafe.Pointer(lpbi))
+
 	ret, _, _ := syscall.Syscall(shBrowseForFolder, 1,
 		uintptr(unsafe.Pointer(lpbi)),
 		0,
@@ -204,6 +206,9 @@ func SHBrowseForFolder(lpbi *BROWSEINFO) uintptr {
 }
 
 func SHGetFileInfo(pszPath *uint16, dwFileAttributes uint32, psfi *SHFILEINFO, cbFileInfo, uFlags uint32) uintptr {
+	defer escape(unsafe.Pointer(pszPath))
+	defer escape(unsafe.Pointer(psfi))
+
 	ret, _, _ := syscall.Syscall6(shGetFileInfo, 5,
 		uintptr(unsafe.Pointer(pszPath)),
 		uintptr(dwFileAttributes),
@@ -216,6 +221,8 @@ func SHGetFileInfo(pszPath *uint16, dwFileAttributes uint32, psfi *SHFILEINFO, c
 }
 
 func SHGetPathFromIDList(pidl uintptr, pszPath *uint16) bool {
+	defer escape(unsafe.Pointer(pszPath))
+
 	ret, _, _ := syscall.Syscall(shGetPathFromIDList, 2,
 		pidl,
 		uintptr(unsafe.Pointer(pszPath)),
@@ -225,6 +232,8 @@ func SHGetPathFromIDList(pidl uintptr, pszPath *uint16) bool {
 }
 
 func SHGetSpecialFolderPath(hwndOwner HWND, lpszPath *uint16, csidl CSIDL, fCreate bool) bool {
+	defer escape(unsafe.Pointer(lpszPath))
+
 	ret, _, _ := syscall.Syscall6(shGetSpecialFolderPath, 4,
 		uintptr(hwndOwner),
 		uintptr(unsafe.Pointer(lpszPath)),
@@ -237,6 +246,8 @@ func SHGetSpecialFolderPath(hwndOwner HWND, lpszPath *uint16, csidl CSIDL, fCrea
 }
 
 func Shell_NotifyIcon(dwMessage uint32, lpdata *NOTIFYICONDATA) bool {
+	defer escape(unsafe.Pointer(lpdata))
+
 	ret, _, _ := syscall.Syscall(shell_NotifyIcon, 2,
 		uintptr(dwMessage),
 		uintptr(unsafe.Pointer(lpdata)),

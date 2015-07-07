@@ -227,6 +227,10 @@ func init() {
 //	typeperf -qx
 func PdhAddCounter(hQuery PDH_HQUERY, szFullCounterPath string, dwUserData uintptr, phCounter *PDH_HCOUNTER) uint32 {
 	ptxt, _ := syscall.UTF16PtrFromString(szFullCounterPath)
+
+	defer escape(unsafe.Pointer(phCounter))
+	defer escape(unsafe.Pointer(ptxt))
+
 	ret, _, _ := pdh_AddCounterW.Call(
 		uintptr(hQuery),
 		uintptr(unsafe.Pointer(ptxt)),
@@ -244,6 +248,10 @@ func PdhAddEnglishCounter(hQuery PDH_HQUERY, szFullCounterPath string, dwUserDat
 	}
 
 	ptxt, _ := syscall.UTF16PtrFromString(szFullCounterPath)
+
+	defer escape(unsafe.Pointer(phCounter))
+	defer escape(unsafe.Pointer(ptxt))
+
 	ret, _, _ := pdh_AddEnglishCounterW.Call(
 		uintptr(hQuery),
 		uintptr(unsafe.Pointer(ptxt)),
@@ -291,6 +299,9 @@ func PdhCollectQueryData(hQuery PDH_HQUERY) uint32 {
 // Formats the given hCounter using a 'double'. The result is set into the specialized union struct pValue.
 // This function does not directly translate to a Windows counterpart due to union specialization tricks.
 func PdhGetFormattedCounterValueDouble(hCounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_FMT_COUNTERVALUE_DOUBLE) uint32 {
+	defer escape(unsafe.Pointer(lpdwType))
+	defer escape(unsafe.Pointer(pValue))
+
 	ret, _, _ := pdh_GetFormattedCounterValue.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_DOUBLE),
@@ -303,6 +314,9 @@ func PdhGetFormattedCounterValueDouble(hCounter PDH_HCOUNTER, lpdwType *uint32, 
 // Formats the given hCounter using a large int (int64). The result is set into the specialized union struct pValue.
 // This function does not directly translate to a Windows counterpart due to union specialization tricks.
 func PdhGetFormattedCounterValueLarge(hCounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_FMT_COUNTERVALUE_LARGE) uint32 {
+	defer escape(unsafe.Pointer(lpdwType))
+	defer escape(unsafe.Pointer(pValue))
+
 	ret, _, _ := pdh_GetFormattedCounterValue.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_LARGE),
@@ -321,6 +335,9 @@ func PdhGetFormattedCounterValueLarge(hCounter PDH_HCOUNTER, lpdwType *uint32, p
 // the Double or Large counterparts instead. These functions provide actually the same data, except in
 // a different, working format.
 func PdhGetFormattedCounterValueLong(hCounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_FMT_COUNTERVALUE_LONG) uint32 {
+	defer escape(unsafe.Pointer(lpdwType))
+	defer escape(unsafe.Pointer(pValue))
+
 	ret, _, _ := pdh_GetFormattedCounterValue.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_LONG),
@@ -368,6 +385,10 @@ func PdhGetFormattedCounterValueLong(hCounter PDH_HCOUNTER, lpdwType *uint32, pV
 //		}
 //	}
 func PdhGetFormattedCounterArrayDouble(hCounter PDH_HCOUNTER, lpdwBufferSize *uint32, lpdwBufferCount *uint32, itemBuffer *PDH_FMT_COUNTERVALUE_ITEM_DOUBLE) uint32 {
+	defer escape(unsafe.Pointer(lpdwBufferSize))
+	defer escape(unsafe.Pointer(lpdwBufferCount))
+	defer escape(unsafe.Pointer(itemBuffer))
+
 	ret, _, _ := pdh_GetFormattedCounterArrayW.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_DOUBLE),
@@ -382,6 +403,10 @@ func PdhGetFormattedCounterArrayDouble(hCounter PDH_HCOUNTER, lpdwBufferSize *ui
 // counter that contains a wildcard character for the instance name. The itemBuffer must a slice of type PDH_FMT_COUNTERVALUE_ITEM_LARGE.
 // For an example usage, see PdhGetFormattedCounterArrayDouble.
 func PdhGetFormattedCounterArrayLarge(hCounter PDH_HCOUNTER, lpdwBufferSize *uint32, lpdwBufferCount *uint32, itemBuffer *PDH_FMT_COUNTERVALUE_ITEM_LARGE) uint32 {
+	defer escape(unsafe.Pointer(lpdwBufferSize))
+	defer escape(unsafe.Pointer(lpdwBufferCount))
+	defer escape(unsafe.Pointer(itemBuffer))
+
 	ret, _, _ := pdh_GetFormattedCounterArrayW.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_LARGE),
@@ -398,6 +423,10 @@ func PdhGetFormattedCounterArrayLarge(hCounter PDH_HCOUNTER, lpdwBufferSize *uin
 //
 // BUG(krpors): See description of PdhGetFormattedCounterValueLong().
 func PdhGetFormattedCounterArrayLong(hCounter PDH_HCOUNTER, lpdwBufferSize *uint32, lpdwBufferCount *uint32, itemBuffer *PDH_FMT_COUNTERVALUE_ITEM_LONG) uint32 {
+	defer escape(unsafe.Pointer(lpdwBufferSize))
+	defer escape(unsafe.Pointer(lpdwBufferCount))
+	defer escape(unsafe.Pointer(itemBuffer))
+
 	ret, _, _ := pdh_GetFormattedCounterArrayW.Call(
 		uintptr(hCounter),
 		uintptr(PDH_FMT_LONG),
@@ -416,6 +445,8 @@ func PdhGetFormattedCounterArrayLong(hCounter PDH_HCOUNTER, lpdwBufferSize *uint
 // the handle to the query, and must be used in subsequent calls. This function returns a PDH_
 // constant error code, or ERROR_SUCCESS if the call succeeded.
 func PdhOpenQuery(szDataSource uintptr, dwUserData uintptr, phQuery *PDH_HQUERY) uint32 {
+	defer escape(unsafe.Pointer(phQuery))
+
 	ret, _, _ := pdh_OpenQuery.Call(
 		szDataSource,
 		dwUserData,

@@ -274,6 +274,8 @@ func ImageList_ReplaceIcon(himl HIMAGELIST, i int32, hicon HICON) int32 {
 }
 
 func InitCommonControlsEx(lpInitCtrls *INITCOMMONCONTROLSEX) bool {
+	defer escape(unsafe.Pointer(lpInitCtrls))
+
 	ret, _, _ := syscall.Syscall(initCommonControlsEx, 1,
 		uintptr(unsafe.Pointer(lpInitCtrls)),
 		0,

@@ -222,6 +222,8 @@ func SysAllocString(s string) *uint16 /*BSTR*/ {
 }
 
 func SysFreeString(bstr *uint16 /*BSTR*/) {
+	defer escape(unsafe.Pointer(bstr))
+
 	syscall.Syscall(sysFreeString, 1,
 		uintptr(unsafe.Pointer(bstr)),
 		0,
@@ -229,6 +231,8 @@ func SysFreeString(bstr *uint16 /*BSTR*/) {
 }
 
 func SysStringLen(bstr *uint16 /*BSTR*/) uint32 {
+	defer escape(unsafe.Pointer(bstr))
+
 	ret, _, _ := syscall.Syscall(sysStringLen, 1,
 		uintptr(unsafe.Pointer(bstr)),
 		0,

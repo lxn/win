@@ -64,6 +64,7 @@ var (
 	getLogicalDriveStrings uintptr
 	getModuleHandle        uintptr
 	getNumberFormat        uintptr
+	getProfileString       uintptr
 	getThreadLocale        uintptr
 	getVersion             uintptr
 	globalAlloc            uintptr
@@ -74,7 +75,6 @@ var (
 	mulDiv                 uintptr
 	setLastError           uintptr
 	systemTimeToFileTime   uintptr
-	getProfileString       uintptr
 )
 
 type (
@@ -136,7 +136,6 @@ func init() {
 	mulDiv = MustGetProcAddress(libkernel32, "MulDiv")
 	setLastError = MustGetProcAddress(libkernel32, "SetLastError")
 	systemTimeToFileTime = MustGetProcAddress(libkernel32, "SystemTimeToFileTime")
-
 }
 
 func CloseHandle(hObject HANDLE) bool {
@@ -149,6 +148,9 @@ func CloseHandle(hObject HANDLE) bool {
 }
 
 func FileTimeToSystemTime(lpFileTime *FILETIME, lpSystemTime *SYSTEMTIME) bool {
+	defer escape(unsafe.Pointer(lpFileTime))
+	defer escape(unsafe.Pointer(lpSystemTime))
+
 	ret, _, _ := syscall.Syscall(fileTimeToSystemTime, 2,
 		uintptr(unsafe.Pointer(lpFileTime)),
 		uintptr(unsafe.Pointer(lpSystemTime)),
@@ -158,6 +160,8 @@ func FileTimeToSystemTime(lpFileTime *FILETIME, lpSystemTime *SYSTEMTIME) bool {
 }
 
 func GetConsoleTitle(lpConsoleTitle *uint16, nSize uint32) uint32 {
+	defer escape(unsafe.Pointer(lpConsoleTitle))
+
 	ret, _, _ := syscall.Syscall(getConsoleTitle, 2,
 		uintptr(unsafe.Pointer(lpConsoleTitle)),
 		uintptr(nSize),
@@ -185,6 +189,8 @@ func GetLastError() uint32 {
 }
 
 func GetLocaleInfo(Locale LCID, LCType LCTYPE, lpLCData *uint16, cchData int32) int32 {
+	defer escape(unsafe.Pointer(lpLCData))
+
 	ret, _, _ := syscall.Syscall6(getLocaleInfo, 4,
 		uintptr(Locale),
 		uintptr(LCType),
@@ -197,6 +203,8 @@ func GetLocaleInfo(Locale LCID, LCType LCTYPE, lpLCData *uint16, cchData int32) 
 }
 
 func GetLogicalDriveStrings(nBufferLength uint32, lpBuffer *uint16) uint32 {
+	defer escape(unsafe.Pointer(lpBuffer))
+
 	ret, _, _ := syscall.Syscall(getLogicalDriveStrings, 2,
 		uintptr(nBufferLength),
 		uintptr(unsafe.Pointer(lpBuffer)),
@@ -206,6 +214,8 @@ func GetLogicalDriveStrings(nBufferLength uint32, lpBuffer *uint16) uint32 {
 }
 
 func GetModuleHandle(lpModuleName *uint16) HINSTANCE {
+	defer escape(unsafe.Pointer(lpModuleName))
+
 	ret, _, _ := syscall.Syscall(getModuleHandle, 1,
 		uintptr(unsafe.Pointer(lpModuleName)),
 		0,
@@ -215,6 +225,10 @@ func GetModuleHandle(lpModuleName *uint16) HINSTANCE {
 }
 
 func GetNumberFormat(Locale LCID, dwFlags uint32, lpValue *uint16, lpFormat *NUMBERFMT, lpNumberStr *uint16, cchNumber int32) int32 {
+	defer escape(unsafe.Pointer(lpValue))
+	defer escape(unsafe.Pointer(lpFormat))
+	defer escape(unsafe.Pointer(lpNumberStr))
+
 	ret, _, _ := syscall.Syscall6(getNumberFormat, 6,
 		uintptr(Locale),
 		uintptr(dwFlags),
@@ -227,6 +241,10 @@ func GetNumberFormat(Locale LCID, dwFlags uint32, lpValue *uint16, lpFormat *NUM
 }
 
 func GetProfileString(lpAppName, lpKeyName, lpDefault *uint16, lpReturnedString uintptr, nSize uint32) bool {
+	defer escape(unsafe.Pointer(lpAppName))
+	defer escape(unsafe.Pointer(lpKeyName))
+	defer escape(unsafe.Pointer(lpDefault))
+
 	ret, _, _ := syscall.Syscall6(getProfileString, 5,
 		uintptr(unsafe.Pointer(lpAppName)),
 		uintptr(unsafe.Pointer(lpKeyName)),
@@ -291,6 +309,9 @@ func GlobalUnlock(hMem HGLOBAL) bool {
 }
 
 func MoveMemory(destination, source unsafe.Pointer, length uintptr) {
+	defer escape(destination)
+	defer escape(source)
+
 	syscall.Syscall(moveMemory, 3,
 		uintptr(unsafe.Pointer(destination)),
 		uintptr(source),
@@ -314,6 +335,9 @@ func SetLastError(dwErrorCode uint32) {
 }
 
 func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
+	defer escape(unsafe.Pointer(lpSystemTime))
+	defer escape(unsafe.Pointer(lpFileTime))
+
 	ret, _, _ := syscall.Syscall(systemTimeToFileTime, 2,
 		uintptr(unsafe.Pointer(lpSystemTime)),
 		uintptr(unsafe.Pointer(lpFileTime)),

@@ -157,6 +157,9 @@ func init() {
 }
 
 func GdipCreateBitmapFromFile(filename *uint16, bitmap **GpBitmap) GpStatus {
+	defer escape(unsafe.Pointer(filename))
+	defer escape(unsafe.Pointer(bitmap))
+
 	ret, _, _ := syscall.Syscall(gdipCreateBitmapFromFile, 2,
 		uintptr(unsafe.Pointer(filename)),
 		uintptr(unsafe.Pointer(bitmap)),
@@ -166,6 +169,8 @@ func GdipCreateBitmapFromFile(filename *uint16, bitmap **GpBitmap) GpStatus {
 }
 
 func GdipCreateBitmapFromHBITMAP(hbm HBITMAP, hpal HPALETTE, bitmap **GpBitmap) GpStatus {
+	defer escape(unsafe.Pointer(bitmap))
+
 	ret, _, _ := syscall.Syscall(gdipCreateBitmapFromHBITMAP, 3,
 		uintptr(hbm),
 		uintptr(hpal),
@@ -175,6 +180,9 @@ func GdipCreateBitmapFromHBITMAP(hbm HBITMAP, hpal HPALETTE, bitmap **GpBitmap) 
 }
 
 func GdipCreateHBITMAPFromBitmap(bitmap *GpBitmap, hbmReturn *HBITMAP, background ARGB) GpStatus {
+	defer escape(unsafe.Pointer(bitmap))
+	defer escape(unsafe.Pointer(hbmReturn))
+
 	ret, _, _ := syscall.Syscall(gdipCreateHBITMAPFromBitmap, 3,
 		uintptr(unsafe.Pointer(bitmap)),
 		uintptr(unsafe.Pointer(hbmReturn)),
@@ -184,6 +192,8 @@ func GdipCreateHBITMAPFromBitmap(bitmap *GpBitmap, hbmReturn *HBITMAP, backgroun
 }
 
 func GdipDisposeImage(image *GpImage) GpStatus {
+	defer escape(unsafe.Pointer(image))
+
 	ret, _, _ := syscall.Syscall(gdipDisposeImage, 1,
 		uintptr(unsafe.Pointer(image)),
 		0,
@@ -200,6 +210,9 @@ func GdiplusShutdown() {
 }
 
 func GdiplusStartup(input *GdiplusStartupInput, output *GdiplusStartupOutput) GpStatus {
+	defer escape(unsafe.Pointer(input))
+	defer escape(unsafe.Pointer(output))
+
 	ret, _, _ := syscall.Syscall(gdiplusStartup, 3,
 		uintptr(unsafe.Pointer(&token)),
 		uintptr(unsafe.Pointer(input)),

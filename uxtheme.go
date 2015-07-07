@@ -89,6 +89,8 @@ func CloseThemeData(hTheme HTHEME) HRESULT {
 }
 
 func DrawThemeBackground(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pRect, pClipRect *RECT) HRESULT {
+	defer escape(unsafe.Pointer(pRect))
+
 	ret, _, _ := syscall.Syscall6(drawThemeBackground, 6,
 		uintptr(hTheme),
 		uintptr(hdc),
@@ -101,6 +103,9 @@ func DrawThemeBackground(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pRect,
 }
 
 func DrawThemeText(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pszText *uint16, iCharCount int32, dwTextFlags, dwTextFlags2 uint32, pRect *RECT) HRESULT {
+	defer escape(unsafe.Pointer(pszText))
+	defer escape(unsafe.Pointer(pRect))
+
 	ret, _, _ := syscall.Syscall9(drawThemeText, 9,
 		uintptr(hTheme),
 		uintptr(hdc),
@@ -116,6 +121,10 @@ func DrawThemeText(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pszText *uin
 }
 
 func GetThemeTextExtent(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pszText *uint16, iCharCount int32, dwTextFlags uint32, pBoundingRect, pExtentRect *RECT) HRESULT {
+	defer escape(unsafe.Pointer(pszText))
+	defer escape(unsafe.Pointer(pBoundingRect))
+	defer escape(unsafe.Pointer(pExtentRect))
+
 	ret, _, _ := syscall.Syscall9(getThemeTextExtent, 9,
 		uintptr(hTheme),
 		uintptr(hdc),
@@ -131,6 +140,8 @@ func GetThemeTextExtent(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pszText
 }
 
 func OpenThemeData(hwnd HWND, pszClassList *uint16) HTHEME {
+	defer escape(unsafe.Pointer(pszClassList))
+
 	ret, _, _ := syscall.Syscall(openThemeData, 2,
 		uintptr(hwnd),
 		uintptr(unsafe.Pointer(pszClassList)),
@@ -140,6 +151,9 @@ func OpenThemeData(hwnd HWND, pszClassList *uint16) HTHEME {
 }
 
 func SetWindowTheme(hwnd HWND, pszSubAppName, pszSubIdList *uint16) HRESULT {
+	defer escape(unsafe.Pointer(pszSubAppName))
+	defer escape(unsafe.Pointer(pszSubIdList))
+
 	ret, _, _ := syscall.Syscall(setWindowTheme, 3,
 		uintptr(hwnd),
 		uintptr(unsafe.Pointer(pszSubAppName)),

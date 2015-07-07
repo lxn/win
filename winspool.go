@@ -50,6 +50,11 @@ func init() {
 }
 
 func DeviceCapabilities(pDevice, pPort *uint16, fwCapability uint16, pOutput *uint16, pDevMode *DEVMODE) uint32 {
+	defer escape(unsafe.Pointer(pDevice))
+	defer escape(unsafe.Pointer(pPort))
+	defer escape(unsafe.Pointer(pOutput))
+	defer escape(unsafe.Pointer(pDevMode))
+
 	ret, _, _ := syscall.Syscall6(deviceCapabilities, 5,
 		uintptr(unsafe.Pointer(pDevice)),
 		uintptr(unsafe.Pointer(pPort)),
@@ -62,6 +67,10 @@ func DeviceCapabilities(pDevice, pPort *uint16, fwCapability uint16, pOutput *ui
 }
 
 func DocumentProperties(hWnd HWND, hPrinter HANDLE, pDeviceName *uint16, pDevModeOutput, pDevModeInput *DEVMODE, fMode uint32) int32 {
+	defer escape(unsafe.Pointer(pDeviceName))
+	defer escape(unsafe.Pointer(pDevModeOutput))
+	defer escape(unsafe.Pointer(pDevModeInput))
+
 	ret, _, _ := syscall.Syscall6(documentProperties, 6,
 		uintptr(hWnd),
 		uintptr(hPrinter),
@@ -74,6 +83,11 @@ func DocumentProperties(hWnd HWND, hPrinter HANDLE, pDeviceName *uint16, pDevMod
 }
 
 func EnumPrinters(Flags uint32, Name *uint16, Level uint32, pPrinterEnum *byte, cbBuf uint32, pcbNeeded, pcReturned *uint32) bool {
+	defer escape(unsafe.Pointer(Name))
+	defer escape(unsafe.Pointer(pPrinterEnum))
+	defer escape(unsafe.Pointer(pcbNeeded))
+	defer escape(unsafe.Pointer(pcReturned))
+
 	ret, _, _ := syscall.Syscall9(enumPrinters, 7,
 		uintptr(Flags),
 		uintptr(unsafe.Pointer(Name)),
@@ -89,6 +103,9 @@ func EnumPrinters(Flags uint32, Name *uint16, Level uint32, pPrinterEnum *byte, 
 }
 
 func GetDefaultPrinter(pszBuffer *uint16, pcchBuffer *uint32) bool {
+	defer escape(unsafe.Pointer(pszBuffer))
+	defer escape(unsafe.Pointer(pcchBuffer))
+
 	ret, _, _ := syscall.Syscall(getDefaultPrinter, 2,
 		uintptr(unsafe.Pointer(pszBuffer)),
 		uintptr(unsafe.Pointer(pcchBuffer)),

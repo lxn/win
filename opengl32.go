@@ -170,6 +170,8 @@ func WglDeleteContext(hglrc HGLRC) bool {
 }
 
 func WglDescribeLayerPlane(hdc HDC, iPixelFormat, iLayerPlane int, nBytes uint8, plpd *LAYERPLANEDESCRIPTOR) bool {
+	defer escape(unsafe.Pointer(plpd))
+
 	ret, _, _ := syscall.Syscall6(wglDescribeLayerPlane, 5,
 		uintptr(hdc),
 		uintptr(iPixelFormat),
@@ -200,6 +202,8 @@ func WglGetCurrentDC() HDC {
 }
 
 func WglGetLayerPaletteEntries(hdc HDC, iLayerPlane, iStart, cEntries int, pcr *COLORREF) int {
+	defer escape(unsafe.Pointer(pcr))
+
 	ret, _, _ := syscall.Syscall6(wglGetLayerPaletteEntries, 5,
 		uintptr(hdc),
 		uintptr(iLayerPlane),
@@ -212,6 +216,8 @@ func WglGetLayerPaletteEntries(hdc HDC, iLayerPlane, iStart, cEntries int, pcr *
 }
 
 func WglGetProcAddress(lpszProc *byte) uintptr {
+	defer escape(unsafe.Pointer(lpszProc))
+
 	ret, _, _ := syscall.Syscall(wglGetProcAddress, 1,
 		uintptr(unsafe.Pointer(lpszProc)),
 		0,
@@ -239,6 +245,8 @@ func WglRealizeLayerPalette(hdc HDC, iLayerPlane int, bRealize bool) bool {
 }
 
 func WglSetLayerPaletteEntries(hdc HDC, iLayerPlane, iStart, cEntries int, pcr *COLORREF) int {
+	defer escape(unsafe.Pointer(pcr))
+
 	ret, _, _ := syscall.Syscall6(wglSetLayerPaletteEntries, 5,
 		uintptr(hdc),
 		uintptr(iLayerPlane),
@@ -281,6 +289,8 @@ func WglUseFontBitmaps(hdc HDC, first, count, listbase uint32) bool {
 }
 
 func WglUseFontOutlines(hdc HDC, first, count, listbase uint32, deviation, extrusion float32, format int, pgmf *GLYPHMETRICSFLOAT) bool {
+	defer escape(unsafe.Pointer(pgmf))
+
 	ret, _, _ := syscall.Syscall12(wglUseFontBitmaps, 8,
 		uintptr(hdc),
 		uintptr(first),

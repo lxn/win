@@ -217,6 +217,8 @@ func (wb2 *IWebBrowser2) Put_Height(Height int32) HRESULT {
 }
 
 func (wb2 *IWebBrowser2) Get_LocationURL(pbstrLocationURL **uint16 /*BSTR*/) HRESULT {
+	defer escape(unsafe.Pointer(pbstrLocationURL))
+
 	ret, _, _ := syscall.Syscall(wb2.LpVtbl.Get_LocationURL, 2,
 		uintptr(unsafe.Pointer(wb2)),
 		uintptr(unsafe.Pointer(pbstrLocationURL)),
@@ -226,6 +228,12 @@ func (wb2 *IWebBrowser2) Get_LocationURL(pbstrLocationURL **uint16 /*BSTR*/) HRE
 }
 
 func (wb2 *IWebBrowser2) Navigate2(URL *VAR_BSTR, Flags *VAR_I4, TargetFrameName *VAR_BSTR, PostData unsafe.Pointer, Headers *VAR_BSTR) HRESULT {
+	defer escape(unsafe.Pointer(URL))
+	defer escape(unsafe.Pointer(Flags))
+	defer escape(unsafe.Pointer(TargetFrameName))
+	defer escape(PostData)
+	defer escape(unsafe.Pointer(Headers))
+
 	ret, _, _ := syscall.Syscall6(wb2.LpVtbl.Navigate2, 6,
 		uintptr(unsafe.Pointer(wb2)),
 		uintptr(unsafe.Pointer(URL)),

@@ -85,6 +85,9 @@ func RegCloseKey(hKey HKEY) int32 {
 }
 
 func RegOpenKeyEx(hKey HKEY, lpSubKey *uint16, ulOptions uint32, samDesired REGSAM, phkResult *HKEY) int32 {
+	defer escape(unsafe.Pointer(lpSubKey))
+	defer escape(unsafe.Pointer(phkResult))
+
 	ret, _, _ := syscall.Syscall6(regOpenKeyEx, 5,
 		uintptr(hKey),
 		uintptr(unsafe.Pointer(lpSubKey)),
@@ -97,6 +100,12 @@ func RegOpenKeyEx(hKey HKEY, lpSubKey *uint16, ulOptions uint32, samDesired REGS
 }
 
 func RegQueryValueEx(hKey HKEY, lpValueName *uint16, lpReserved, lpType *uint32, lpData *byte, lpcbData *uint32) int32 {
+	defer escape(unsafe.Pointer(lpValueName))
+	defer escape(unsafe.Pointer(lpReserved))
+	defer escape(unsafe.Pointer(lpType))
+	defer escape(unsafe.Pointer(lpData))
+	defer escape(unsafe.Pointer(lpcbData))
+
 	ret, _, _ := syscall.Syscall6(regQueryValueEx, 6,
 		uintptr(hKey),
 		uintptr(unsafe.Pointer(lpValueName)),
@@ -109,6 +118,13 @@ func RegQueryValueEx(hKey HKEY, lpValueName *uint16, lpReserved, lpType *uint32,
 }
 
 func RegEnumValue(hKey HKEY, index uint32, lpValueName *uint16, lpcchValueName *uint32, lpReserved, lpType *uint32, lpData *byte, lpcbData *uint32) int32 {
+	defer escape(unsafe.Pointer(lpValueName))
+	defer escape(unsafe.Pointer(lpcchValueName))
+	defer escape(unsafe.Pointer(lpReserved))
+	defer escape(unsafe.Pointer(lpType))
+	defer escape(unsafe.Pointer(lpData))
+	defer escape(unsafe.Pointer(lpcbData))
+
 	ret, _, _ := syscall.Syscall9(regEnumValue, 8,
 		uintptr(hKey),
 		uintptr(index),
@@ -123,6 +139,9 @@ func RegEnumValue(hKey HKEY, index uint32, lpValueName *uint16, lpcchValueName *
 }
 
 func RegSetValueEx(hKey HKEY, lpValueName *uint16, lpReserved, lpDataType uint64, lpData *byte, cbData uint32) int32 {
+	defer escape(unsafe.Pointer(lpValueName))
+	defer escape(unsafe.Pointer(lpData))
+
 	ret, _, _ := syscall.Syscall6(regSetValueEx, 6,
 		uintptr(hKey),
 		uintptr(unsafe.Pointer(lpValueName)),

@@ -40,6 +40,13 @@ type (
 	HRESULT int32
 )
 
+var escapedPtr unsafe.Pointer
+
+func escape(ptr unsafe.Pointer) {
+	escapedPtr = ptr
+	escapedPtr = nil
+}
+
 func MustLoadLibrary(name string) uintptr {
 	lib, err := syscall.LoadLibrary(name)
 	if err != nil {
