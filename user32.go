@@ -1523,6 +1523,7 @@ var (
 	getCursorPos               uintptr
 	getDC                      uintptr
 	getFocus                   uintptr
+	getForegroundWindow        uintptr
 	getKeyState                uintptr
 	getMenuInfo                uintptr
 	getMessage                 uintptr
@@ -1640,6 +1641,7 @@ func init() {
 	getCursorPos = MustGetProcAddress(libuser32, "GetCursorPos")
 	getDC = MustGetProcAddress(libuser32, "GetDC")
 	getFocus = MustGetProcAddress(libuser32, "GetFocus")
+	getForegroundWindow = MustGetProcAddress(libuser32, "GetForegroundWindow")
 	getKeyState = MustGetProcAddress(libuser32, "GetKeyState")
 	getMenuInfo = MustGetProcAddress(libuser32, "GetMenuInfo")
 	getMessage = MustGetProcAddress(libuser32, "GetMessageW")
@@ -2090,6 +2092,15 @@ func GetDC(hWnd HWND) HDC {
 
 func GetFocus() HWND {
 	ret, _, _ := syscall.Syscall(getFocus, 0,
+		0,
+		0,
+		0)
+
+	return HWND(ret)
+}
+
+func GetForegroundWindow() HWND {
+	ret, _, _ := syscall.Syscall(getForegroundWindow, 0,
 		0,
 		0,
 		0)
