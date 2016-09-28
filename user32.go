@@ -1568,6 +1568,7 @@ var (
 	postMessage                uintptr
 	postQuitMessage            uintptr
 	registerClassEx            uintptr
+	registerHotKey             uintptr
 	registerRawInputDevices    uintptr
 	registerWindowMessage      uintptr
 	releaseCapture             uintptr
@@ -1690,6 +1691,7 @@ func init() {
 	postMessage = MustGetProcAddress(libuser32, "PostMessageW")
 	postQuitMessage = MustGetProcAddress(libuser32, "PostQuitMessage")
 	registerClassEx = MustGetProcAddress(libuser32, "RegisterClassExW")
+	registerHotKey = MustGetProcAddress(libuser32, "RegisterHotKey")
 	registerRawInputDevices = MustGetProcAddress(libuser32, "RegisterRawInputDevices")
 	registerWindowMessage = MustGetProcAddress(libuser32, "RegisterWindowMessageW")
 	releaseCapture = MustGetProcAddress(libuser32, "ReleaseCapture")
@@ -2485,6 +2487,17 @@ func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
 	return ATOM(ret)
 }
 
+func RegisterHotKey(hwnd HWND, id int, fsModifiers, vk uint) bool {
+	ret, _, _ := syscall.Syscall6(registerHotKey, 4,
+		uintptr(hwnd),
+		uintptr(id),
+		uintptr(fsModifiers),
+		uintptr(vk),
+		0,
+		0)
+	return ret != 0
+}
+
 func RegisterRawInputDevices(pRawInputDevices *RAWINPUTDEVICE, uiNumDevices uint32, cbSize uint32) bool {
 	ret, _, _ := syscall.Syscall(registerRawInputDevices, 3,
 		uintptr(unsafe.Pointer(pRawInputDevices)),
@@ -2803,6 +2816,7 @@ func UpdateWindow(hwnd HWND) bool {
 
 	return ret != 0
 }
+
 func WindowFromPoint(Point POINT) HWND {
 	ret, _, _ := syscall.Syscall(windowFromPoint, 2,
 		uintptr(Point.X),
