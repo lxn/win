@@ -724,6 +724,30 @@ const (
 	PFD_STEREO_DONTCARE       = 0x80000000
 )
 
+// GradientFill constants
+const (
+	GRADIENT_FILL_RECT_H   = 0x00
+	GRADIENT_FILL_RECT_V   = 0x01
+	GRADIENT_FILL_TRIANGLE = 0x02
+)
+
+// Region Combine Modes
+const (
+	RGN_AND  = 1
+	RGN_OR   = 2
+	RGN_XOR  = 3
+	RGN_DIFF = 4
+	RGN_COPY = 5
+)
+
+// Region Types
+const (
+	REGIONERROR   = 0
+	NULLREGION    = 1
+	SIMPLEREGION  = 2
+	COMPLEXREGION = 3
+)
+
 type (
 	COLORREF     uint32
 	HBITMAP      HGDIOBJ
@@ -734,7 +758,7 @@ type (
 	HENHMETAFILE HANDLE
 	HPALETTE     HGDIOBJ
 	HPEN         HGDIOBJ
-	HREGION      HGDIOBJ
+	HRGN         HGDIOBJ
 )
 
 type PIXELFORMATDESCRIPTOR struct {
@@ -964,15 +988,37 @@ type ENHMETAHEADER struct {
 	SzlMicrometers SIZE
 }
 
+type TRIVERTEX struct {
+	X     int32
+	Y     int32
+	Red   uint16
+	Green uint16
+	Blue  uint16
+	Alpha uint16
+}
+
+type GRADIENT_RECT struct {
+	UpperLeft  uint32
+	LowerRight uint32
+}
+
+type GRADIENT_TRIANGLE struct {
+	Vertex1 uint32
+	Vertex2 uint32
+	Vertex3 uint32
+}
+
 var (
 	// Library
-	libgdi32 uintptr
+	libgdi32   uintptr
+	libmsimg32 uintptr
 
 	// Functions
 	abortDoc               uintptr
 	bitBlt                 uintptr
 	choosePixelFormat      uintptr
 	closeEnhMetaFile       uintptr
+	combineRgn             uintptr
 	copyEnhMetaFile        uintptr
 	createBitmap           uintptr
 	createCompatibleBitmap uintptr
@@ -983,24 +1029,31 @@ var (
 	createFontIndirect     uintptr
 	createEnhMetaFile      uintptr
 	createIC               uintptr
+	createPatternBrush     uintptr
+	createRectRgn          uintptr
 	deleteDC               uintptr
 	deleteEnhMetaFile      uintptr
 	deleteObject           uintptr
 	ellipse                uintptr
 	endDoc                 uintptr
 	endPage                uintptr
+	excludeClipRect        uintptr
 	extCreatePen           uintptr
+	fillRgn                uintptr
 	getDeviceCaps          uintptr
 	getDIBits              uintptr
 	getEnhMetaFile         uintptr
 	getEnhMetaFileHeader   uintptr
 	getObject              uintptr
 	getPixel               uintptr
+	getRgnBox              uintptr
 	getStockObject         uintptr
 	getTextExtentExPoint   uintptr
 	getTextExtentPoint32   uintptr
 	getTextMetrics         uintptr
 	getViewportOrgEx       uintptr
+	gradientFill           uintptr
+	intersectClipRect      uintptr
 	lineTo                 uintptr
 	moveToEx               uintptr
 	playEnhMetaFile        uintptr
@@ -1009,6 +1062,7 @@ var (
 	resetDC                uintptr
 	restoreDC              uintptr
 	selectObject           uintptr
+	setBkColor             uintptr
 	setBkMode              uintptr
 	setBrushOrgEx          uintptr
 	setPixel               uintptr
@@ -1022,17 +1076,20 @@ var (
 	stretchBlt             uintptr
 	swapBuffers            uintptr
 	textOut                uintptr
+	transparentBlt         uintptr
 )
 
 func init() {
 	// Library
 	libgdi32 = MustLoadLibrary("gdi32.dll")
+	libmsimg32 = MustLoadLibrary("msimg32.dll")
 
 	// Functions
 	abortDoc = MustGetProcAddress(libgdi32, "AbortDoc")
 	bitBlt = MustGetProcAddress(libgdi32, "BitBlt")
 	choosePixelFormat = MustGetProcAddress(libgdi32, "ChoosePixelFormat")
 	closeEnhMetaFile = MustGetProcAddress(libgdi32, "CloseEnhMetaFile")
+	combineRgn = MustGetProcAddress(libgdi32, "CombineRgn")
 	copyEnhMetaFile = MustGetProcAddress(libgdi32, "CopyEnhMetaFileW")
 	createBitmap = MustGetProcAddress(libgdi32, "CreateBitmap")
 	createCompatibleBitmap = MustGetProcAddress(libgdi32, "CreateCompatibleBitmap")
@@ -1043,24 +1100,30 @@ func init() {
 	createEnhMetaFile = MustGetProcAddress(libgdi32, "CreateEnhMetaFileW")
 	createFontIndirect = MustGetProcAddress(libgdi32, "CreateFontIndirectW")
 	createIC = MustGetProcAddress(libgdi32, "CreateICW")
+	createPatternBrush = MustGetProcAddress(libgdi32, "CreatePatternBrush")
+	createRectRgn = MustGetProcAddress(libgdi32, "CreateRectRgn")
 	deleteDC = MustGetProcAddress(libgdi32, "DeleteDC")
 	deleteEnhMetaFile = MustGetProcAddress(libgdi32, "DeleteEnhMetaFile")
 	deleteObject = MustGetProcAddress(libgdi32, "DeleteObject")
 	ellipse = MustGetProcAddress(libgdi32, "Ellipse")
 	endDoc = MustGetProcAddress(libgdi32, "EndDoc")
 	endPage = MustGetProcAddress(libgdi32, "EndPage")
+	excludeClipRect = MustGetProcAddress(libgdi32, "ExcludeClipRect")
 	extCreatePen = MustGetProcAddress(libgdi32, "ExtCreatePen")
+	fillRgn = MustGetProcAddress(libgdi32, "FillRgn")
 	getDeviceCaps = MustGetProcAddress(libgdi32, "GetDeviceCaps")
 	getDIBits = MustGetProcAddress(libgdi32, "GetDIBits")
 	getEnhMetaFile = MustGetProcAddress(libgdi32, "GetEnhMetaFileW")
 	getEnhMetaFileHeader = MustGetProcAddress(libgdi32, "GetEnhMetaFileHeader")
 	getObject = MustGetProcAddress(libgdi32, "GetObjectW")
 	getPixel = MustGetProcAddress(libgdi32, "GetPixel")
+	getRgnBox = MustGetProcAddress(libgdi32, "GetRgnBox")
 	getStockObject = MustGetProcAddress(libgdi32, "GetStockObject")
 	getTextExtentExPoint = MustGetProcAddress(libgdi32, "GetTextExtentExPointW")
 	getTextExtentPoint32 = MustGetProcAddress(libgdi32, "GetTextExtentPoint32W")
 	getTextMetrics = MustGetProcAddress(libgdi32, "GetTextMetricsW")
 	getViewportOrgEx = MustGetProcAddress(libgdi32, "GetViewportOrgEx")
+	intersectClipRect = MustGetProcAddress(libgdi32, "IntersectClipRect")
 	lineTo = MustGetProcAddress(libgdi32, "LineTo")
 	moveToEx = MustGetProcAddress(libgdi32, "MoveToEx")
 	playEnhMetaFile = MustGetProcAddress(libgdi32, "PlayEnhMetaFile")
@@ -1070,6 +1133,7 @@ func init() {
 	restoreDC = MustGetProcAddress(libgdi32, "RestoreDC")
 	saveDC = MustGetProcAddress(libgdi32, "SaveDC")
 	selectObject = MustGetProcAddress(libgdi32, "SelectObject")
+	setBkColor = MustGetProcAddress(libgdi32, "SetBkColor")
 	setBkMode = MustGetProcAddress(libgdi32, "SetBkMode")
 	setBrushOrgEx = MustGetProcAddress(libgdi32, "SetBrushOrgEx")
 	setPixel = MustGetProcAddress(libgdi32, "SetPixel")
@@ -1083,6 +1147,8 @@ func init() {
 	swapBuffers = MustGetProcAddress(libgdi32, "SwapBuffers")
 	textOut = MustGetProcAddress(libgdi32, "TextOutW")
 
+	gradientFill = MustGetProcAddress(libmsimg32, "GradientFill")
+	transparentBlt = MustGetProcAddress(libmsimg32, "TransparentBlt")
 }
 
 func AbortDoc(hdc HDC) int32 {
@@ -1125,6 +1191,18 @@ func CloseEnhMetaFile(hdc HDC) HENHMETAFILE {
 		0)
 
 	return HENHMETAFILE(ret)
+}
+
+func CombineRgn(hrgnDest, hrgnSrc1, hrgnSrc2 HRGN, fnCombineMode int32) int32 {
+	ret, _, _ := syscall.Syscall6(combineRgn, 4,
+		uintptr(hrgnDest),
+		uintptr(hrgnSrc1),
+		uintptr(hrgnSrc2),
+		uintptr(fnCombineMode),
+		0,
+		0)
+
+	return int32(ret)
 }
 
 func CopyEnhMetaFile(hemfSrc HENHMETAFILE, lpszFile *uint16) HENHMETAFILE {
@@ -1232,6 +1310,27 @@ func CreateIC(lpszDriver, lpszDevice, lpszOutput *uint16, lpdvmInit *DEVMODE) HD
 	return HDC(ret)
 }
 
+func CreatePatternBrush(hbmp HBITMAP) HBRUSH {
+	ret, _, _ := syscall.Syscall(createPatternBrush, 1,
+		uintptr(hbmp),
+		0,
+		0)
+
+	return HBRUSH(ret)
+}
+
+func CreateRectRgn(nLeftRect, nTopRect, nRightRect, nBottomRect int32) HRGN {
+	ret, _, _ := syscall.Syscall6(createRectRgn, 4,
+		uintptr(nLeftRect),
+		uintptr(nTopRect),
+		uintptr(nRightRect),
+		uintptr(nBottomRect),
+		0,
+		0)
+
+	return HRGN(ret)
+}
+
 func DeleteDC(hdc HDC) bool {
 	ret, _, _ := syscall.Syscall(deleteDC, 1,
 		uintptr(hdc),
@@ -1289,6 +1388,18 @@ func EndPage(hdc HDC) int32 {
 	return int32(ret)
 }
 
+func ExcludeClipRect(hdc HDC, nLeftRect, nTopRect, nRightRect, nBottomRect int32) int32 {
+	ret, _, _ := syscall.Syscall6(excludeClipRect, 5,
+		uintptr(hdc),
+		uintptr(nLeftRect),
+		uintptr(nTopRect),
+		uintptr(nRightRect),
+		uintptr(nBottomRect),
+		0)
+
+	return int32(ret)
+}
+
 func ExtCreatePen(dwPenStyle, dwWidth uint32, lplb *LOGBRUSH, dwStyleCount uint32, lpStyle *uint32) HPEN {
 	ret, _, _ := syscall.Syscall6(extCreatePen, 5,
 		uintptr(dwPenStyle),
@@ -1299,6 +1410,15 @@ func ExtCreatePen(dwPenStyle, dwWidth uint32, lplb *LOGBRUSH, dwStyleCount uint3
 		0)
 
 	return HPEN(ret)
+}
+
+func FillRgn(hdc HDC, hrgn HRGN, hbr HBRUSH) bool {
+	ret, _, _ := syscall.Syscall(fillRgn, 3,
+		uintptr(hdc),
+		uintptr(hrgn),
+		uintptr(hbr))
+
+	return ret != 0
 }
 
 func GetDeviceCaps(hdc HDC, nIndex int32) int32 {
@@ -1360,6 +1480,15 @@ func GetPixel(hdc HDC, nXPos, nYPos int32) COLORREF {
 	return COLORREF(ret)
 }
 
+func GetRgnBox(hrgn HRGN, lprc *RECT) int32 {
+	ret, _, _ := syscall.Syscall(getRgnBox, 2,
+		uintptr(hrgn),
+		uintptr(unsafe.Pointer(lprc)),
+		0)
+
+	return int32(ret)
+}
+
 func GetStockObject(fnObject int32) HGDIOBJ {
 	ret, _, _ := syscall.Syscall(getStockObject, 1,
 		uintptr(fnObject),
@@ -1412,6 +1541,30 @@ func GetViewportOrgEx(hdc HDC, lpPoint *POINT) bool {
 		0)
 
 	return ret != 0
+}
+
+func GradientFill(hdc HDC, pVertex *TRIVERTEX, nVertex uint32, pMesh unsafe.Pointer, nMesh, ulMode uint32) bool {
+	ret, _, _ := syscall.Syscall6(gradientFill, 6,
+		uintptr(hdc),
+		uintptr(unsafe.Pointer(pVertex)),
+		uintptr(nVertex),
+		uintptr(pMesh),
+		uintptr(nMesh),
+		uintptr(ulMode))
+
+	return ret != 0
+}
+
+func IntersectClipRect(hdc HDC, nLeftRect, nTopRect, nRightRect, nBottomRect int32) int32 {
+	ret, _, _ := syscall.Syscall6(intersectClipRect, 5,
+		uintptr(hdc),
+		uintptr(nLeftRect),
+		uintptr(nTopRect),
+		uintptr(nRightRect),
+		uintptr(nBottomRect),
+		0)
+
+	return int32(ret)
 }
 
 func LineTo(hdc HDC, nXEnd, nYEnd int32) bool {
@@ -1497,6 +1650,15 @@ func SelectObject(hdc HDC, hgdiobj HGDIOBJ) HGDIOBJ {
 		0)
 
 	return HGDIOBJ(ret)
+}
+
+func SetBkColor(hdc HDC, crColor COLORREF) COLORREF {
+	ret, _, _ := syscall.Syscall(setBkColor, 2,
+		uintptr(hdc),
+		uintptr(crColor),
+		0)
+
+	return COLORREF(ret)
 }
 
 func SetBkMode(hdc HDC, iBkMode int32) int32 {
@@ -1624,5 +1786,23 @@ func TextOut(hdc HDC, nXStart, nYStart int32, lpString *uint16, cchString int32)
 		uintptr(unsafe.Pointer(lpString)),
 		uintptr(cchString),
 		0)
+	return ret != 0
+}
+
+func TransparentBlt(hdcDest HDC, xoriginDest, yoriginDest, wDest, hDest int32, hdcSrc HDC, xoriginSrc, yoriginSrc, wSrc, hSrc int32, crTransparent uint32) bool {
+	ret, _, _ := syscall.Syscall12(transparentBlt, 11,
+		uintptr(hdcDest),
+		uintptr(xoriginDest),
+		uintptr(yoriginDest),
+		uintptr(wDest),
+		uintptr(hDest),
+		uintptr(hdcSrc),
+		uintptr(xoriginSrc),
+		uintptr(yoriginSrc),
+		uintptr(wSrc),
+		uintptr(hSrc),
+		uintptr(crTransparent),
+		0)
+
 	return ret != 0
 }
