@@ -57,27 +57,28 @@ var (
 	libkernel32 uintptr
 
 	// Functions
-	closeHandle            uintptr
-	fileTimeToSystemTime   uintptr
-	getConsoleTitle        uintptr
-	getConsoleWindow       uintptr
-	getLastError           uintptr
-	getLocaleInfo          uintptr
-	getLogicalDriveStrings uintptr
-	getModuleHandle        uintptr
-	getNumberFormat        uintptr
-	getThreadLocale        uintptr
-	getThreadUILanguage    uintptr
-	getVersion             uintptr
-	globalAlloc            uintptr
-	globalFree             uintptr
-	globalLock             uintptr
-	globalUnlock           uintptr
-	moveMemory             uintptr
-	mulDiv                 uintptr
-	setLastError           uintptr
-	systemTimeToFileTime   uintptr
-	getProfileString       uintptr
+	closeHandle                        uintptr
+	fileTimeToSystemTime               uintptr
+	getConsoleTitle                    uintptr
+	getConsoleWindow                   uintptr
+	getLastError                       uintptr
+	getLocaleInfo                      uintptr
+	getLogicalDriveStrings             uintptr
+	getModuleHandle                    uintptr
+	getNumberFormat                    uintptr
+	getPhysicallyInstalledSystemMemory uintptr
+	getProfileString                   uintptr
+	getThreadLocale                    uintptr
+	getThreadUILanguage                uintptr
+	getVersion                         uintptr
+	globalAlloc                        uintptr
+	globalFree                         uintptr
+	globalLock                         uintptr
+	globalUnlock                       uintptr
+	moveMemory                         uintptr
+	mulDiv                             uintptr
+	setLastError                       uintptr
+	systemTimeToFileTime               uintptr
 )
 
 type (
@@ -129,6 +130,7 @@ func init() {
 	getLogicalDriveStrings = MustGetProcAddress(libkernel32, "GetLogicalDriveStringsW")
 	getModuleHandle = MustGetProcAddress(libkernel32, "GetModuleHandleW")
 	getNumberFormat = MustGetProcAddress(libkernel32, "GetNumberFormatW")
+	getPhysicallyInstalledSystemMemory, _ = syscall.GetProcAddress(syscall.Handle(libkernel32), "GetPhysicallyInstalledSystemMemory")
 	getProfileString = MustGetProcAddress(libkernel32, "GetProfileStringW")
 	getThreadLocale = MustGetProcAddress(libkernel32, "GetThreadLocale")
 	getThreadUILanguage, _ = syscall.GetProcAddress(syscall.Handle(libkernel32), "GetThreadUILanguage")
@@ -141,7 +143,6 @@ func init() {
 	mulDiv = MustGetProcAddress(libkernel32, "MulDiv")
 	setLastError = MustGetProcAddress(libkernel32, "SetLastError")
 	systemTimeToFileTime = MustGetProcAddress(libkernel32, "SystemTimeToFileTime")
-
 }
 
 func CloseHandle(hObject HANDLE) bool {
@@ -229,6 +230,15 @@ func GetNumberFormat(Locale LCID, dwFlags uint32, lpValue *uint16, lpFormat *NUM
 		uintptr(cchNumber))
 
 	return int32(ret)
+}
+
+func GetPhysicallyInstalledSystemMemory(totalMemoryInKilobytes *uint64) bool {
+	ret, _, _ := syscall.Syscall(getPhysicallyInstalledSystemMemory, 1,
+		uintptr(unsafe.Pointer(totalMemoryInKilobytes)),
+		0,
+		0)
+
+	return ret != 0
 }
 
 func GetProfileString(lpAppName, lpKeyName, lpDefault *uint16, lpReturnedString uintptr, nSize uint32) bool {
