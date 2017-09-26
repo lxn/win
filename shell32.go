@@ -113,7 +113,8 @@ const (
 	NIIF_NOSOUND = 0x00000010
 )
 
-const NOTIFYICON_VERSION = 3
+const NOTIFYICON_VERSION_XP uint32 = 0x3
+const NOTIFYICON_VERSION_VISTA uint32 = 0x4
 
 // SHGetFileInfo flags
 const (
@@ -152,6 +153,11 @@ type NOTIFYICONDATA struct {
 	SzInfoTitle      [64]uint16
 	DwInfoFlags      uint32
 	GuidItem         syscall.GUID
+	hBalloonIcon     HICON
+}
+
+func (nid *NOTIFYICONDATA) Set_hBalloonIcon(icon HICON) {
+	nid.hBalloonIcon = icon
 }
 
 type SHFILEINFO struct {

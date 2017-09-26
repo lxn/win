@@ -274,12 +274,12 @@ func GetThreadUILanguage() LANGID {
 	return LANGID(ret)
 }
 
-func GetVersion() int64 {
+func GetVersion() uint32 {
 	ret, _, _ := syscall.Syscall(getVersion, 0,
 		0,
 		0,
 		0)
-	return int64(ret)
+	return uint32(ret)
 }
 
 func GlobalAlloc(uFlags uint32, dwBytes uintptr) HGLOBAL {
