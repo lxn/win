@@ -42,6 +42,8 @@ type (
 	HRESULT int32
 )
 
+const STANDARD_RIGHTS_REQUIRED = 0x000F0000
+
 func MustLoadLibrary(name string) uintptr {
 	lib, err := syscall.LoadLibrary(name)
 	if err != nil {
