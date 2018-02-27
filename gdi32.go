@@ -748,6 +748,11 @@ const (
 	COMPLEXREGION = 3
 )
 
+// AlphaBlend operations
+const (
+	AC_SRC_ALPHA = 0x1
+)
+
 type (
 	COLORREF     uint32
 	HBITMAP      HGDIOBJ
@@ -1008,6 +1013,13 @@ type GRADIENT_TRIANGLE struct {
 	Vertex3 uint32
 }
 
+type BLENDFUNCTION struct {
+	BlendOp             byte
+	BlendFlags          byte
+	SourceConstantAlpha byte
+	AlphaFormat         byte
+}
+
 var (
 	// Library
 	libgdi32   uintptr
@@ -1015,6 +1027,7 @@ var (
 
 	// Functions
 	abortDoc               uintptr
+	alphaBlend             uintptr
 	bitBlt                 uintptr
 	choosePixelFormat      uintptr
 	closeEnhMetaFile       uintptr
@@ -1040,6 +1053,7 @@ var (
 	excludeClipRect        uintptr
 	extCreatePen           uintptr
 	fillRgn                uintptr
+	gdiFlush               uintptr
 	getDeviceCaps          uintptr
 	getDIBits              uintptr
 	getEnhMetaFile         uintptr
@@ -1061,10 +1075,12 @@ var (
 	rectangle              uintptr
 	resetDC                uintptr
 	restoreDC              uintptr
+	roundRect              uintptr
 	selectObject           uintptr
 	setBkColor             uintptr
 	setBkMode              uintptr
 	setBrushOrgEx          uintptr
+	setDIBits              uintptr
 	setPixel               uintptr
 	setPixelFormat         uintptr
 	setStretchBltMode      uintptr
@@ -1111,6 +1127,7 @@ func init() {
 	excludeClipRect = MustGetProcAddress(libgdi32, "ExcludeClipRect")
 	extCreatePen = MustGetProcAddress(libgdi32, "ExtCreatePen")
 	fillRgn = MustGetProcAddress(libgdi32, "FillRgn")
+	gdiFlush = MustGetProcAddress(libgdi32, "GdiFlush")
 	getDeviceCaps = MustGetProcAddress(libgdi32, "GetDeviceCaps")
 	getDIBits = MustGetProcAddress(libgdi32, "GetDIBits")
 	getEnhMetaFile = MustGetProcAddress(libgdi32, "GetEnhMetaFileW")
@@ -1131,11 +1148,13 @@ func init() {
 	rectangle = MustGetProcAddress(libgdi32, "Rectangle")
 	resetDC = MustGetProcAddress(libgdi32, "ResetDCW")
 	restoreDC = MustGetProcAddress(libgdi32, "RestoreDC")
+	roundRect = MustGetProcAddress(libgdi32, "RoundRect")
 	saveDC = MustGetProcAddress(libgdi32, "SaveDC")
 	selectObject = MustGetProcAddress(libgdi32, "SelectObject")
 	setBkColor = MustGetProcAddress(libgdi32, "SetBkColor")
 	setBkMode = MustGetProcAddress(libgdi32, "SetBkMode")
 	setBrushOrgEx = MustGetProcAddress(libgdi32, "SetBrushOrgEx")
+	setDIBits = MustGetProcAddress(libgdi32, "SetDIBits")
 	setPixel = MustGetProcAddress(libgdi32, "SetPixel")
 	setPixelFormat = MustGetProcAddress(libgdi32, "SetPixelFormat")
 	setStretchBltMode = MustGetProcAddress(libgdi32, "SetStretchBltMode")
@@ -1147,6 +1166,7 @@ func init() {
 	swapBuffers = MustGetProcAddress(libgdi32, "SwapBuffers")
 	textOut = MustGetProcAddress(libgdi32, "TextOutW")
 
+	alphaBlend = MustGetProcAddress(libmsimg32, "AlphaBlend")
 	gradientFill = MustGetProcAddress(libmsimg32, "GradientFill")
 	transparentBlt = MustGetProcAddress(libmsimg32, "TransparentBlt")
 }
@@ -1158,6 +1178,24 @@ func AbortDoc(hdc HDC) int32 {
 		0)
 
 	return int32(ret)
+}
+
+func AlphaBlend(hdcDest HDC, nXOriginDest, nYOriginDest, nWidthDest, nHeightDest int32, hdcSrc HDC, nXOriginSrc, nYOriginSrc, nWidthSrc, nHeightSrc int32, ftn BLENDFUNCTION) bool {
+	ret, _, _ := syscall.Syscall12(alphaBlend, 11,
+		uintptr(hdcDest),
+		uintptr(nXOriginDest),
+		uintptr(nYOriginDest),
+		uintptr(nWidthDest),
+		uintptr(nHeightDest),
+		uintptr(hdcSrc),
+		uintptr(nXOriginSrc),
+		uintptr(nYOriginSrc),
+		uintptr(nWidthSrc),
+		uintptr(nHeightSrc),
+		uintptr(*(*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(&ftn))))),
+		0)
+
+	return ret != 0
 }
 
 func BitBlt(hdcDest HDC, nXDest, nYDest, nWidth, nHeight int32, hdcSrc HDC, nXSrc, nYSrc int32, dwRop uint32) bool {
@@ -1421,6 +1459,15 @@ func FillRgn(hdc HDC, hrgn HRGN, hbr HBRUSH) bool {
 	return ret != 0
 }
 
+func GdiFlush() bool {
+	ret, _, _ := syscall.Syscall(gdiFlush, 0,
+		0,
+		0,
+		0)
+
+	return ret != 0
+}
+
 func GetDeviceCaps(hdc HDC, nIndex int32) int32 {
 	ret, _, _ := syscall.Syscall(getDeviceCaps, 2,
 		uintptr(hdc),
@@ -1635,6 +1682,21 @@ func RestoreDC(hdc HDC, nSaveDC int32) bool {
 	return ret != 0
 }
 
+func RoundRect(hdc HDC, nLeftRect, nTopRect, nRightRect, nBottomRect, nWidth, nHeight int32) bool {
+	ret, _, _ := syscall.Syscall9(roundRect, 7,
+		uintptr(hdc),
+		uintptr(nLeftRect),
+		uintptr(nTopRect),
+		uintptr(nRightRect),
+		uintptr(nBottomRect),
+		uintptr(nWidth),
+		uintptr(nHeight),
+		0,
+		0)
+
+	return ret != 0
+}
+
 func SaveDC(hdc HDC) int32 {
 	ret, _, _ := syscall.Syscall(saveDC, 1,
 		uintptr(hdc),
@@ -1680,6 +1742,21 @@ func SetBrushOrgEx(hdc HDC, nXOrg, nYOrg int32, lppt *POINT) bool {
 		0)
 
 	return ret != 0
+}
+
+func SetDIBits(hdc HDC, hbmp HBITMAP, uStartScan, cScanLines uint32, lpvBits *byte, lpbmi *BITMAPINFO, fuColorUse uint32) int32 {
+	ret, _, _ := syscall.Syscall9(setDIBits, 7,
+		uintptr(hdc),
+		uintptr(hbmp),
+		uintptr(uStartScan),
+		uintptr(cScanLines),
+		uintptr(unsafe.Pointer(lpvBits)),
+		uintptr(unsafe.Pointer(lpbmi)),
+		uintptr(fuColorUse),
+		0,
+		0)
+
+	return int32(ret)
 }
 
 func SetPixel(hdc HDC, X, Y int32, crColor COLORREF) COLORREF {
