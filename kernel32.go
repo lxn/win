@@ -61,6 +61,7 @@ var (
 	fileTimeToSystemTime   uintptr
 	getConsoleTitle        uintptr
 	getConsoleWindow       uintptr
+	getCurrentThreadId     uintptr
 	getLastError           uintptr
 	getLocaleInfo          uintptr
 	getLogicalDriveStrings uintptr
@@ -124,6 +125,7 @@ func init() {
 	fileTimeToSystemTime = MustGetProcAddress(libkernel32, "FileTimeToSystemTime")
 	getConsoleTitle = MustGetProcAddress(libkernel32, "GetConsoleTitleW")
 	getConsoleWindow = MustGetProcAddress(libkernel32, "GetConsoleWindow")
+	getCurrentThreadId = MustGetProcAddress(libkernel32, "GetCurrentThreadId")
 	getLastError = MustGetProcAddress(libkernel32, "GetLastError")
 	getLocaleInfo = MustGetProcAddress(libkernel32, "GetLocaleInfoW")
 	getLogicalDriveStrings = MustGetProcAddress(libkernel32, "GetLogicalDriveStringsW")
@@ -178,6 +180,14 @@ func GetConsoleWindow() HWND {
 		0)
 
 	return HWND(ret)
+}
+
+func GetCurrentThreadId() int {
+	ret, _, _ := syscall.Syscall(getCurrentThreadId, 0,
+		0,
+		0,
+		0)
+	return int(ret)
 }
 
 func GetLastError() uint32 {

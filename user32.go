@@ -1488,6 +1488,7 @@ var (
 	// Functions
 	addClipboardFormatListener uintptr
 	adjustWindowRect           uintptr
+	attachThreadInput          uintptr
 	beginDeferWindowPos        uintptr
 	beginPaint                 uintptr
 	callWindowProc             uintptr
@@ -1539,6 +1540,8 @@ var (
 	getWindowLongPtr           uintptr
 	getWindowPlacement         uintptr
 	getWindowRect              uintptr
+	getWindowThreadProcessId   uintptr
+
 	insertMenuItem             uintptr
 	invalidateRect             uintptr
 	isChild                    uintptr
@@ -1606,6 +1609,7 @@ func init() {
 	// Functions
 	addClipboardFormatListener, _ = syscall.GetProcAddress(syscall.Handle(libuser32), "AddClipboardFormatListener")
 	adjustWindowRect = MustGetProcAddress(libuser32, "AdjustWindowRect")
+	attachThreadInput = MustGetProcAddress(libuser32, "AttachThreadInput")
 	beginDeferWindowPos = MustGetProcAddress(libuser32, "BeginDeferWindowPos")
 	beginPaint = MustGetProcAddress(libuser32, "BeginPaint")
 	callWindowProc = MustGetProcAddress(libuser32, "CallWindowProcW")
@@ -1662,6 +1666,7 @@ func init() {
 	}
 	getWindowPlacement = MustGetProcAddress(libuser32, "GetWindowPlacement")
 	getWindowRect = MustGetProcAddress(libuser32, "GetWindowRect")
+	getWindowThreadProcessId = MustGetProcAddress(libuser32, "GetWindowThreadProcessId")
 	insertMenuItem = MustGetProcAddress(libuser32, "InsertMenuItemW")
 	invalidateRect = MustGetProcAddress(libuser32, "InvalidateRect")
 	isChild = MustGetProcAddress(libuser32, "IsChild")
@@ -1745,6 +1750,16 @@ func AdjustWindowRect(lpRect *RECT, dwStyle uint32, bMenu bool) bool {
 		uintptr(BoolToBOOL(bMenu)))
 
 	return ret != 0
+}
+
+func AttachThreadInput(idAttach int32, idAttachTo int32, fAttach bool) int32 {
+	ret, _, _ := syscall.Syscall(attachThreadInput,
+		uintptr(idAttach),
+		uintptr(idAttachTo),
+		uintptr(BoolToBOOL(fAttach)),
+		0)
+
+	return int32(ret)
 }
 
 func BeginDeferWindowPos(nNumWindows int32) HDWP {
@@ -2247,6 +2262,17 @@ func GetWindowRect(hWnd HWND, rect *RECT) bool {
 		0)
 
 	return ret != 0
+}
+
+func GetWindowThreadProcessId(hWnd HWND) int {
+	var processId int
+	syscall.Syscall(getWindowThreadProcessId,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(&processId)),
+		0,
+		0)
+
+	return processId
 }
 
 func InsertMenuItem(hMenu HMENU, uItem uint32, fByPosition bool, lpmii *MENUITEMINFO) bool {
