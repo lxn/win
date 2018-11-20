@@ -1659,6 +1659,7 @@ var (
 	updateWindow               uintptr
 	windowFromDC               uintptr
 	windowFromPoint            uintptr
+	setLayeredWindowAttributes uintptr
 )
 
 func init() {
@@ -1791,6 +1792,7 @@ func init() {
 	updateWindow = MustGetProcAddress(libuser32, "UpdateWindow")
 	windowFromDC = MustGetProcAddress(libuser32, "WindowFromDC")
 	windowFromPoint = MustGetProcAddress(libuser32, "WindowFromPoint")
+	setLayeredWindowAttributes = MustGetProcAddress(libuser32, "SetLayeredWindowAttributes")
 }
 
 func AddClipboardFormatListener(hwnd HWND) bool {
@@ -2919,4 +2921,16 @@ func WindowFromPoint(Point POINT) HWND {
 		0)
 
 	return HWND(ret)
+}
+
+func SetLayeredWindowAttributes(hwnd HWND, crKey COLORREF, bAlpha byte, dwFlags uint32) bool {
+	ret, _, _ := syscall.Syscall6(setLayeredWindowAttributes, 4,
+		uintptr(hwnd),
+		uintptr(crKey),
+		uintptr(bAlpha),
+		uintptr(dwFlags),
+		0,
+		0)
+
+	return ret != 0
 }
