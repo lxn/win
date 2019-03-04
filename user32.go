@@ -1653,6 +1653,7 @@ var (
 	getWindowLongPtr           uintptr
 	getWindowPlacement         uintptr
 	getWindowRect              uintptr
+	getWindowText              uintptr
 	insertMenuItem             uintptr
 	invalidateRect             uintptr
 	isChild                    uintptr
@@ -1784,6 +1785,7 @@ func init() {
 	}
 	getWindowPlacement = MustGetProcAddress(libuser32, "GetWindowPlacement")
 	getWindowRect = MustGetProcAddress(libuser32, "GetWindowRect")
+	getWindowText = MustGetProcAddress(libuser32, "GetWindowTextW")
 	insertMenuItem = MustGetProcAddress(libuser32, "InsertMenuItemW")
 	invalidateRect = MustGetProcAddress(libuser32, "InvalidateRect")
 	isChild = MustGetProcAddress(libuser32, "IsChild")
@@ -2422,6 +2424,15 @@ func GetWindowRect(hWnd HWND, rect *RECT) bool {
 		0)
 
 	return ret != 0
+}
+
+func GetWindowText(hWnd HWND, buf *uint16, length int32) int32 {
+	ret, _, _ := syscall.Syscall(getWindowText, 3,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(buf)),
+		uintptr(length))
+
+	return int32(ret)
 }
 
 func InsertMenuItem(hMenu HMENU, uItem uint32, fByPosition bool, lpmii *MENUITEMINFO) bool {
