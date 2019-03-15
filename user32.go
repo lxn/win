@@ -1677,6 +1677,7 @@ var (
 	postMessage                *windows.LazyProc
 	postQuitMessage            *windows.LazyProc
 	registerClassEx            *windows.LazyProc
+	registerHotKey             *windows.LazyProc
 	registerRawInputDevices    *windows.LazyProc
 	registerWindowMessage      *windows.LazyProc
 	releaseCapture             *windows.LazyProc
@@ -1710,6 +1711,7 @@ var (
 	trackPopupMenuEx           *windows.LazyProc
 	translateMessage           *windows.LazyProc
 	unhookWinEvent             *windows.LazyProc
+	unregisterHotKey           *windows.LazyProc
 	updateWindow               *windows.LazyProc
 	windowFromDC               *windows.LazyProc
 	windowFromPoint            *windows.LazyProc
@@ -1809,6 +1811,7 @@ func init() {
 	postMessage = libuser32.NewProc("PostMessageW")
 	postQuitMessage = libuser32.NewProc("PostQuitMessage")
 	registerClassEx = libuser32.NewProc("RegisterClassExW")
+	registerHotKey = libuser32.NewProc("RegisterHotKey")
 	registerRawInputDevices = libuser32.NewProc("RegisterRawInputDevices")
 	registerWindowMessage = libuser32.NewProc("RegisterWindowMessageW")
 	releaseCapture = libuser32.NewProc("ReleaseCapture")
@@ -1847,6 +1850,7 @@ func init() {
 	trackPopupMenuEx = libuser32.NewProc("TrackPopupMenuEx")
 	translateMessage = libuser32.NewProc("TranslateMessage")
 	unhookWinEvent = libuser32.NewProc("UnhookWinEvent")
+	unregisterHotKey = libuser32.NewProc("UnregisterHotKey")
 	updateWindow = libuser32.NewProc("UpdateWindow")
 	windowFromDC = libuser32.NewProc("WindowFromDC")
 	windowFromPoint = libuser32.NewProc("WindowFromPoint")
@@ -2674,6 +2678,18 @@ func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
 	return ATOM(ret)
 }
 
+func RegisterHotKey(hwnd HWND, id int, fsModifiers, vk uint) bool {
+	ret, _, _ := syscall.Syscall6(registerHotKey.Addr(), 4,
+		uintptr(hwnd),
+		uintptr(id),
+		uintptr(fsModifiers),
+		uintptr(vk),
+		0,
+		0)
+
+	return ret != 0
+}
+
 func RegisterRawInputDevices(pRawInputDevices *RAWINPUTDEVICE, uiNumDevices uint32, cbSize uint32) bool {
 	ret, _, _ := syscall.Syscall(registerRawInputDevices.Addr(), 3,
 		uintptr(unsafe.Pointer(pRawInputDevices)),
@@ -3006,6 +3022,15 @@ func TranslateMessage(msg *MSG) bool {
 
 func UnhookWinEvent(hWinHookEvent HWINEVENTHOOK) bool {
 	ret, _, _ := syscall.Syscall(unhookWinEvent.Addr(), 1, uintptr(hWinHookEvent), 0, 0)
+	return ret != 0
+}
+
+func UnregisterHotKey(hwnd HWND, id int) bool {
+	ret, _, _ := syscall.Syscall(unregisterHotKey.Addr(), 2,
+		uintptr(hwnd),
+		uintptr(id),
+		0)
+
 	return ret != 0
 }
 
