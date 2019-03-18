@@ -468,6 +468,14 @@ const (
 	UISF_ACTIVE    = 0x4
 )
 
+// Key Modifiers
+const (
+	MOD_ALT     = 0x0001
+	MOD_CONTROL = 0x0002
+	MOD_SHIFT   = 0x0004
+	MOD_WIN     = 0x0008
+)
+
 // Virtual key codes
 const (
 	VK_LBUTTON             = 1
@@ -1598,6 +1606,7 @@ var (
 	addClipboardFormatListener *windows.LazyProc
 	adjustWindowRect           *windows.LazyProc
 	animateWindow              *windows.LazyProc
+	attachThreadInput          *windows.LazyProc
 	beginDeferWindowPos        *windows.LazyProc
 	beginPaint                 *windows.LazyProc
 	bringWindowToTop           *windows.LazyProc
@@ -1654,6 +1663,7 @@ var (
 	getWindowLongPtr           *windows.LazyProc
 	getWindowPlacement         *windows.LazyProc
 	getWindowRect              *windows.LazyProc
+	getWindowThreadProcessId   *windows.LazyProc
 	insertMenuItem             *windows.LazyProc
 	invalidateRect             *windows.LazyProc
 	isChild                    *windows.LazyProc
@@ -1727,6 +1737,7 @@ func init() {
 	addClipboardFormatListener = libuser32.NewProc("AddClipboardFormatListener")
 	adjustWindowRect = libuser32.NewProc("AdjustWindowRect")
 	animateWindow = libuser32.NewProc("AnimateWindow")
+	attachThreadInput = libuser32.NewProc("AttachThreadInput")
 	beginDeferWindowPos = libuser32.NewProc("BeginDeferWindowPos")
 	beginPaint = libuser32.NewProc("BeginPaint")
 	bringWindowToTop = libuser32.NewProc("BringWindowToTop")
@@ -1788,6 +1799,7 @@ func init() {
 	}
 	getWindowPlacement = libuser32.NewProc("GetWindowPlacement")
 	getWindowRect = libuser32.NewProc("GetWindowRect")
+	getWindowThreadProcessId = libuser32.NewProc("GetWindowThreadProcessId")
 	insertMenuItem = libuser32.NewProc("InsertMenuItemW")
 	invalidateRect = libuser32.NewProc("InvalidateRect")
 	isChild = libuser32.NewProc("IsChild")
@@ -1883,6 +1895,15 @@ func AnimateWindow(hwnd HWND, dwTime, dwFlags uint32) bool {
 		uintptr(hwnd),
 		uintptr(dwTime),
 		uintptr(dwFlags))
+
+	return ret != 0
+}
+
+func AttachThreadInput(idAttach uint32, idAttachTo uint32, fAttach bool) bool {
+	ret, _, _ := syscall.Syscall(attachThreadInput.Addr(), 3,
+		uintptr(idAttach),
+		uintptr(idAttachTo),
+		uintptr(BoolToBOOL(fAttach)))
 
 	return ret != 0
 }
@@ -2436,6 +2457,15 @@ func GetWindowRect(hWnd HWND, rect *RECT) bool {
 		0)
 
 	return ret != 0
+}
+
+func GetWindowThreadProcessId(hWnd HWND, lpdwProcessId uint32) uint32 {
+	ret, _, _ := syscall.Syscall(getWindowThreadProcessId.Addr(), 2,
+		uintptr(hWnd),
+		uintptr(lpdwProcessId),
+		0)
+
+	return uint32(ret)
 }
 
 func InsertMenuItem(hMenu HMENU, uItem uint32, fByPosition bool, lpmii *MENUITEMINFO) bool {
