@@ -44,30 +44,6 @@ type (
 
 const STANDARD_RIGHTS_REQUIRED = 0x000F0000
 
-func MustLoadLibrary(name string) uintptr {
-	lib, err := syscall.LoadLibrary(name)
-	if err != nil {
-		panic(err)
-	}
-
-	return uintptr(lib)
-}
-
-func MustGetProcAddress(lib uintptr, name string) uintptr {
-	addr, err := syscall.GetProcAddress(syscall.Handle(lib), name)
-	if err != nil {
-		panic(err)
-	}
-
-	return uintptr(addr)
-}
-
-func MaybeGetProcAddress(lib uintptr, name string) uintptr {
-	addr, _ := syscall.GetProcAddress(syscall.Handle(lib), name)
-
-	return uintptr(addr)
-}
-
 func SUCCEEDED(hr HRESULT) bool {
 	return hr >= 0
 }
