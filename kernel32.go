@@ -84,22 +84,24 @@ var (
 	mulDiv                             *windows.LazyProc
 	loadResource                       *windows.LazyProc
 	lockResource                       *windows.LazyProc
+	openProcess                        *windows.LazyProc
 	setLastError                       *windows.LazyProc
 	sizeofResource                     *windows.LazyProc
 	systemTimeToFileTime               *windows.LazyProc
+	writeProcessMemory                 *windows.LazyProc
 )
 
 type (
-	ATOM          uint16
-	HANDLE        uintptr
-	HGLOBAL       HANDLE
-	HINSTANCE     HANDLE
-	LCID          uint32
-	LCTYPE        uint32
-	LANGID        uint16
-	HMODULE       uintptr
+	ATOM uint16
+	HANDLE uintptr
+	HGLOBAL HANDLE
+	HINSTANCE HANDLE
+	LCID uint32
+	LCTYPE uint32
+	LANGID uint16
+	HMODULE uintptr
 	HWINEVENTHOOK HANDLE
-	HRSRC         uintptr
+	HRSRC uintptr
 )
 
 type FILETIME struct {
@@ -170,9 +172,11 @@ func init() {
 	mulDiv = libkernel32.NewProc("MulDiv")
 	loadResource = libkernel32.NewProc("LoadResource")
 	lockResource = libkernel32.NewProc("LockResource")
+	openProcess = libkernel32.NewProc("OpenProcess")
 	setLastError = libkernel32.NewProc("SetLastError")
 	sizeofResource = libkernel32.NewProc("SizeofResource")
 	systemTimeToFileTime = libkernel32.NewProc("SystemTimeToFileTime")
+	writeProcessMemory = libkernel32.NewProc("WriteProcessMemory")
 }
 
 func ActivateActCtx(ctx HANDLE) (uintptr, bool) {
@@ -448,4 +452,25 @@ func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
 		0)
 
 	return ret != 0
+}
+
+func WriteProcessMemory(hProcess HANDLE, lpBaseAddress, lpBuffer uintptr, nSize uintptr, lpNumberOfBytesWritten uintptr) bool {
+	ret, _, _ := syscall.Syscall6(writeProcessMemory.Addr(), 5,
+		uintptr(hProcess),
+		lpBaseAddress,
+		lpBuffer,
+		nSize,
+		lpNumberOfBytesWritten,
+		0)
+
+	return ret != 0
+}
+
+func OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId uintptr) HANDLE {
+	ret, _, _ := syscall.Syscall(openProcess.Addr(), 3,
+		dwDesiredAccess,
+		bInheritHandle,
+		dwProcessId)
+
+	return HANDLE(ret)
 }
