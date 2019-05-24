@@ -30,7 +30,7 @@ const (
 	GMEM_FIXED    = 0x0000
 	GMEM_MOVEABLE = 0x0002
 	GMEM_ZEROINIT = 0x0040
-	GPTR          = 0x004
+	GPTR          = GMEM_FIXED | GMEM_ZEROINIT
 )
 
 // Predefined locale ids
@@ -62,6 +62,7 @@ var (
 	closeHandle                        *windows.LazyProc
 	createActCtx                       *windows.LazyProc
 	fileTimeToSystemTime               *windows.LazyProc
+	findResource                       *windows.LazyProc
 	getConsoleTitle                    *windows.LazyProc
 	getConsoleWindow                   *windows.LazyProc
 	getCurrentProcessId                *windows.LazyProc
@@ -82,7 +83,10 @@ var (
 	globalUnlock                       *windows.LazyProc
 	moveMemory                         *windows.LazyProc
 	mulDiv                             *windows.LazyProc
+	loadResource                       *windows.LazyProc
+	lockResource                       *windows.LazyProc
 	setLastError                       *windows.LazyProc
+	sizeofResource                     *windows.LazyProc
 	systemTimeToFileTime               *windows.LazyProc
 )
 
@@ -96,6 +100,7 @@ type (
 	LANGID        uint16
 	HMODULE       uintptr
 	HWINEVENTHOOK HANDLE
+	HRSRC         uintptr
 )
 
 type FILETIME struct {
@@ -144,6 +149,7 @@ func init() {
 	closeHandle = libkernel32.NewProc("CloseHandle")
 	createActCtx = libkernel32.NewProc("CreateActCtxW")
 	fileTimeToSystemTime = libkernel32.NewProc("FileTimeToSystemTime")
+	findResource = libkernel32.NewProc("FindResourceW")
 	getConsoleTitle = libkernel32.NewProc("GetConsoleTitleW")
 	getConsoleWindow = libkernel32.NewProc("GetConsoleWindow")
 	getCurrentProcessId = libkernel32.NewProc("GetCurrentProcessId")
@@ -164,7 +170,10 @@ func init() {
 	globalUnlock = libkernel32.NewProc("GlobalUnlock")
 	moveMemory = libkernel32.NewProc("RtlMoveMemory")
 	mulDiv = libkernel32.NewProc("MulDiv")
+	loadResource = libkernel32.NewProc("LoadResource")
+	lockResource = libkernel32.NewProc("LockResource")
 	setLastError = libkernel32.NewProc("SetLastError")
+	sizeofResource = libkernel32.NewProc("SizeofResource")
 	systemTimeToFileTime = libkernel32.NewProc("SystemTimeToFileTime")
 }
 
@@ -206,6 +215,15 @@ func FileTimeToSystemTime(lpFileTime *FILETIME, lpSystemTime *SYSTEMTIME) bool {
 		0)
 
 	return ret != 0
+}
+
+func FindResource(hModule HMODULE, lpName, lpType *uint16) HRSRC {
+	ret, _, _ := syscall.Syscall(findResource.Addr(), 3,
+		uintptr(hModule),
+		uintptr(unsafe.Pointer(lpName)),
+		uintptr(unsafe.Pointer(lpType)))
+
+	return HRSRC(ret)
 }
 
 func GetConsoleTitle(lpConsoleTitle *uint16, nSize uint32) uint32 {
@@ -340,12 +358,12 @@ func GetThreadUILanguage() LANGID {
 	return LANGID(ret)
 }
 
-func GetVersion() int64 {
+func GetVersion() uint32 {
 	ret, _, _ := syscall.Syscall(getVersion.Addr(), 0,
 		0,
 		0,
 		0)
-	return int64(ret)
+	return uint32(ret)
 }
 
 func GlobalAlloc(uFlags uint32, dwBytes uintptr) HGLOBAL {
@@ -400,11 +418,38 @@ func MulDiv(nNumber, nNumerator, nDenominator int32) int32 {
 	return int32(ret)
 }
 
+func LoadResource(hModule HMODULE, hResInfo HRSRC) HGLOBAL {
+	ret, _, _ := syscall.Syscall(loadResource.Addr(), 2,
+		uintptr(hModule),
+		uintptr(hResInfo),
+		0)
+
+	return HGLOBAL(ret)
+}
+
+func LockResource(hResData HGLOBAL) uintptr {
+	ret, _, _ := syscall.Syscall(lockResource.Addr(), 1,
+		uintptr(hResData),
+		0,
+		0)
+
+	return ret
+}
+
 func SetLastError(dwErrorCode uint32) {
 	syscall.Syscall(setLastError.Addr(), 1,
 		uintptr(dwErrorCode),
 		0,
 		0)
+}
+
+func SizeofResource(hModule HMODULE, hResInfo HRSRC) uint32 {
+	ret, _, _ := syscall.Syscall(sizeofResource.Addr(), 2,
+		uintptr(hModule),
+		uintptr(hResInfo),
+		0)
+
+	return uint32(ret)
 }
 
 func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
