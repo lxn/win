@@ -2569,10 +2569,10 @@ func GetWindowRect(hWnd HWND, rect *RECT) bool {
 	return ret != 0
 }
 
-func GetWindowThreadProcessId(hWnd HWND, lpdwProcessId uint32) uint32 {
+func GetWindowThreadProcessId(hWnd HWND, lpdwProcessId *uint32) uint32 {
 	ret, _, _ := syscall.Syscall(getWindowThreadProcessId.Addr(), 2,
 		uintptr(hWnd),
-		uintptr(lpdwProcessId),
+		uintptr(unsafe.Pointer(lpdwProcessId)),
 		0)
 
 	return uint32(ret)
