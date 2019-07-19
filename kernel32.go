@@ -7,9 +7,10 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 const MAX_PATH = 260
@@ -53,6 +54,8 @@ const (
 	LOCALE_SISO639LANGNAME2  LCTYPE = 0x67
 )
 
+//
+
 var (
 	// Library
 	libkernel32 *windows.LazyDLL
@@ -84,9 +87,12 @@ var (
 	mulDiv                             *windows.LazyProc
 	loadResource                       *windows.LazyProc
 	lockResource                       *windows.LazyProc
+	openProcess                        *windows.LazyProc
+	readProcessMemory                  *windows.LazyProc
 	setLastError                       *windows.LazyProc
 	sizeofResource                     *windows.LazyProc
 	systemTimeToFileTime               *windows.LazyProc
+	writeProcessMemory                 *windows.LazyProc
 )
 
 type (
@@ -170,9 +176,12 @@ func init() {
 	mulDiv = libkernel32.NewProc("MulDiv")
 	loadResource = libkernel32.NewProc("LoadResource")
 	lockResource = libkernel32.NewProc("LockResource")
+	openProcess = libkernel32.NewProc("OpenProcess")
+	readProcessMemory = libkernel32.NewProc("ReadProcessMemory")
 	setLastError = libkernel32.NewProc("SetLastError")
 	sizeofResource = libkernel32.NewProc("SizeofResource")
 	systemTimeToFileTime = libkernel32.NewProc("SystemTimeToFileTime")
+	writeProcessMemory = libkernel32.NewProc("WriteProcessMemory")
 }
 
 func ActivateActCtx(ctx HANDLE) (uintptr, bool) {
@@ -425,6 +434,43 @@ func LockResource(hResData HGLOBAL) uintptr {
 	return ret
 }
 
+func OpenProcess(dwDesiredAccess uint32, bInheritHandle uint32, dwProcessId uint32) uintptr {
+	// PROCESS_TERMINATE                  (0x0001)
+	// PROCESS_CREATE_THREAD              (0x0002)
+	// PROCESS_SET_SESSIONID              (0x0004)
+	// PROCESS_VM_OPERATION               (0x0008)
+	// PROCESS_VM_READ                    (0x0010)
+	// PROCESS_VM_WRITE                   (0x0020)
+	// PROCESS_DUP_HANDLE                 (0x0040)
+	// PROCESS_CREATE_PROCESS             (0x0080)
+	// PROCESS_SET_QUOTA                  (0x0100)
+	// PROCESS_SET_INFORMATION            (0x0200)
+	// PROCESS_QUERY_INFORMATION          (0x0400)
+	// PROCESS_SUSPEND_RESUME             (0x0800)
+	// PROCESS_QUERY_LIMITED_INFORMATION  (0x1000)
+	// PROCESS_SET_LIMITED_INFORMATION    (0x2000)
+	// PROCESS_ALL_ACCESS                 (0xFFFF)
+
+	ret, _, _ := syscall.Syscall(openProcess.Addr(), 3,
+		uintptr(dwDesiredAccess),
+		uintptr(bInheritHandle),
+		uintptr(dwProcessId))
+
+	return ret
+}
+
+func ReadProcessMemory(hProcess uintptr, lpBaseAddress uintptr, lpBuffer *uintptr, nSize uintptr, lpNumberOfBytesRead *uintptr) uint32 {
+
+	ret, _, _ := syscall.Syscall6(readProcessMemory.Addr(), 5,
+		uintptr(hProcess),
+		uintptr(lpBaseAddress),
+		uintptr(unsafe.Pointer(lpBuffer)),
+		uintptr(nSize),
+		uintptr(unsafe.Pointer(lpNumberOfBytesRead)), 0)
+
+	return uint32(ret)
+}
+
 func SetLastError(dwErrorCode uint32) {
 	syscall.Syscall(setLastError.Addr(), 1,
 		uintptr(dwErrorCode),
@@ -448,4 +494,16 @@ func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
 		0)
 
 	return ret != 0
+}
+
+func WriteProcessMemory(hProcess uintptr, lpBaseAddress uintptr, lpBuffer *uintptr, nSize uintptr, lpNumberOfBytesWritten *uintptr) uint32 {
+
+	ret, _, _ := syscall.Syscall6(writeProcessMemory.Addr(), 5,
+		uintptr(hProcess),
+		uintptr(lpBaseAddress),
+		uintptr(unsafe.Pointer(lpBuffer)),
+		uintptr(nSize),
+		uintptr(unsafe.Pointer(lpNumberOfBytesWritten)), 0)
+
+	return uint32(ret)
 }
