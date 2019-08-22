@@ -2888,7 +2888,7 @@ func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
 }
 
 func RegisterHotKey(hwnd HWND, id int, fsModifiers, vk uint) bool {
-	ret, _, _ := syscall.Syscall6(registerHotKey, 4,
+	ret, _, _ := syscall.Syscall6(registerHotKey.Addr(), 4,
 		uintptr(hwnd),
 		uintptr(id),
 		uintptr(fsModifiers),
