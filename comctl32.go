@@ -236,7 +236,15 @@ const (
 	I_IMAGENONE        = -2
 )
 
-type HIMAGELIST HANDLE
+type (
+	HIMAGELIST HANDLE
+	WPARAM     uintptr
+	UINT       uint32
+	LPARAM     uintptr
+	UINT_PTR   uintptr
+	DWORD_PTR  uintptr
+	LRESULT    uintptr
+)
 
 type INITCOMMONCONTROLSEX struct {
 	DwSize, DwICC uint32
