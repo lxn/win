@@ -895,49 +895,125 @@ const (
 	WM_MOUSEHOVER             = 0X2A1
 	WM_MOUSELEAVE             = 0X2A3
 	WM_CLIPBOARDUPDATE        = 0x031D
+	WM_UNICHAR                = 0x0109
+)
+
+const (
+	CHILDID_SELF      = 0
+	INDEXID_OBJECT    = 0
+	INDEXID_CONTAINER = 0
+
+	OBJID_WINDOW            = int32(0x00000000)
+	OBJID_SYSMENU           = int32(-((0xFFFFFFFF ^ 0xFFFFFFFF) + 1))
+	OBJID_TITLEBAR          = int32(-((0xFFFFFFFE ^ 0xFFFFFFFF) + 1))
+	OBJID_MENU              = int32(-((0xFFFFFFFD ^ 0xFFFFFFFF) + 1))
+	OBJID_CLIENT            = int32(-((0xFFFFFFFC ^ 0xFFFFFFFF) + 1))
+	OBJID_VSCROLL           = int32(-((0xFFFFFFFB ^ 0xFFFFFFFF) + 1))
+	OBJID_HSCROLL           = int32(-((0xFFFFFFFA ^ 0xFFFFFFFF) + 1))
+	OBJID_SIZEGRIP          = int32(-((0xFFFFFFF9 ^ 0xFFFFFFFF) + 1))
+	OBJID_CARET             = int32(-((0xFFFFFFF8 ^ 0xFFFFFFFF) + 1))
+	OBJID_CURSOR            = int32(-((0xFFFFFFF7 ^ 0xFFFFFFFF) + 1))
+	OBJID_ALERT             = int32(-((0xFFFFFFF6 ^ 0xFFFFFFFF) + 1))
+	OBJID_SOUND             = int32(-((0xFFFFFFF5 ^ 0xFFFFFFFF) + 1))
+	OBJID_QUERYCLASSNAMEIDX = int32(-((0xFFFFFFF4 ^ 0xFFFFFFFF) + 1))
+	OBJID_NATIVEOM          = int32(-((0xFFFFFFF0 ^ 0xFFFFFFFF) + 1))
 )
 
 // event constants
 const (
-	EVENT_OBJECT_CREATE                   = 0x8000
-	EVENT_OBJECT_DESTROY                  = 0x8001
-	EVENT_OBJECT_SHOW                     = 0x8002
-	EVENT_OBJECT_HIDE                     = 0x8003
-	EVENT_OBJECT_REORDER                  = 0x8004
-	EVENT_OBJECT_FOCUS                    = 0x8005
-	EVENT_OBJECT_SELECTION                = 0x8006
-	EVENT_OBJECT_SELECTIONADD             = 0x8007
-	EVENT_OBJECT_SELECTIONREMOVE          = 0x8008
-	EVENT_OBJECT_SELECTIONWITHIN          = 0x8009
-	EVENT_OBJECT_STATECHANGE              = 0x800A
-	EVENT_OBJECT_LOCATIONCHANGE           = 0x800B
-	EVENT_OBJECT_NAMECHANGE               = 0x800C
-	EVENT_OBJECT_DESCRIPTIONCHANGE        = 0x800D
-	EVENT_OBJECT_VALUECHANGE              = 0x800E
-	EVENT_OBJECT_PARENTCHANGE             = 0x800F
-	EVENT_OBJECT_HELPCHANGE               = 0x8010
-	EVENT_OBJECT_DEFACTIONCHANGE          = 0x8011
-	EVENT_OBJECT_ACCELERATORCHANGE        = 0x8012
-	EVENT_OBJECT_INVOKED                  = 0x8013
-	EVENT_OBJECT_TEXTSELECTIONCHANGED     = 0x8014
-	EVENT_OBJECT_CONTENTSCROLLED          = 0x8015
-	EVENT_SYSTEM_ARRANGMENTPREVIEW        = 0x8016
-	EVENT_OBJECT_CLOAKED                  = 0x8017
-	EVENT_OBJECT_UNCLOAKED                = 0x8018
-	EVENT_OBJECT_LIVEREGIONCHANGED        = 0x8019
-	EVENT_OBJECT_HOSTEDOBJECTSINVALIDATED = 0x8020
-	EVENT_OBJECT_DRAGSTART                = 0x8021
-	EVENT_OBJECT_DRAGCANCEL               = 0x8022
-	EVENT_OBJECT_DRAGCOMPLETE             = 0x8023
-	EVENT_OBJECT_DRAGENTER                = 0x8024
-	EVENT_OBJECT_DRAGLEAVE                = 0x8025
-	EVENT_OBJECT_DRAGDROPPED              = 0x8026
-	EVENT_OBJECT_IME_SHOW                 = 0x8027
-	EVENT_OBJECT_IME_HIDE                 = 0x8028
-	EVENT_OBJECT_IME_CHANGE               = 0x8029
-	EVENT_OBJECT_END                      = 0x80ff
-	EVENT_AIA_START                       = 0xa000
-	EVENT_AIA_END                         = 0xafff
+	EVENT_MIN = 0x00000001
+	EVENT_MAX = 0x7FFFFFFF
+
+	EVENT_SYSTEM_SOUND                  = 0x0001
+	EVENT_SYSTEM_ALERT                  = 0x0002
+	EVENT_SYSTEM_FOREGROUND             = 0x0003
+	EVENT_SYSTEM_MENUSTART              = 0x0004
+	EVENT_SYSTEM_MENUEND                = 0x0005
+	EVENT_SYSTEM_MENUPOPUPSTART         = 0x0006
+	EVENT_SYSTEM_MENUPOPUPEND           = 0x0007
+	EVENT_SYSTEM_CAPTURESTART           = 0x0008
+	EVENT_SYSTEM_CAPTUREEND             = 0x0009
+	EVENT_SYSTEM_MOVESIZESTART          = 0x000A
+	EVENT_SYSTEM_MOVESIZEEND            = 0x000B
+	EVENT_SYSTEM_CONTEXTHELPSTART       = 0x000C
+	EVENT_SYSTEM_CONTEXTHELPEND         = 0x000D
+	EVENT_SYSTEM_DRAGDROPSTART          = 0x000E
+	EVENT_SYSTEM_DRAGDROPEND            = 0x000F
+	EVENT_SYSTEM_DIALOGSTART            = 0x0010
+	EVENT_SYSTEM_DIALOGEND              = 0x0011
+	EVENT_SYSTEM_SCROLLINGSTART         = 0x0012
+	EVENT_SYSTEM_SCROLLINGEND           = 0x0013
+	EVENT_SYSTEM_SWITCHSTART            = 0x0014
+	EVENT_SYSTEM_SWITCHEND              = 0x0015
+	EVENT_SYSTEM_MINIMIZESTART          = 0x0016
+	EVENT_SYSTEM_MINIMIZEEND            = 0x0017
+	EVENT_SYSTEM_DESKTOPSWITCH          = 0x0020
+	EVENT_SYSTEM_SWITCHER_APPGRABBED    = 0x0024
+	EVENT_SYSTEM_SWITCHER_APPOVERTARGET = 0x0025
+	EVENT_SYSTEM_SWITCHER_APPDROPPED    = 0x0026
+	EVENT_SYSTEM_SWITCHER_CANCELLED     = 0x0027
+	EVENT_SYSTEM_IME_KEY_NOTIFICATION   = 0x0029
+	EVENT_SYSTEM_END                    = 0x00FF
+
+	EVENT_OEM_DEFINED_START = 0x0101
+	EVENT_OEM_DEFINED_END   = 0x01FF
+
+	EVENT_CONSOLE_CARET             = 0x4001
+	EVENT_CONSOLE_UPDATE_REGION     = 0x4002
+	EVENT_CONSOLE_UPDATE_SIMPLE     = 0x4003
+	EVENT_CONSOLE_UPDATE_SCROLL     = 0x4004
+	EVENT_CONSOLE_LAYOUT            = 0x4005
+	EVENT_CONSOLE_START_APPLICATION = 0x4006
+	EVENT_CONSOLE_END_APPLICATION   = 0x4007
+	EVENT_CONSOLE_END               = 0x40FF
+
+	EVENT_UIA_EVENTID_START = 0x4E00
+	EVENT_UIA_EVENTID_END   = 0x4EFF
+
+	EVENT_UIA_PROPID_START = 0x7500
+	EVENT_UIA_PROPID_END   = 0x75FF
+
+	EVENT_OBJECT_CREATE                           = 0x8000
+	EVENT_OBJECT_DESTROY                          = 0x8001
+	EVENT_OBJECT_SHOW                             = 0x8002
+	EVENT_OBJECT_HIDE                             = 0x8003
+	EVENT_OBJECT_REORDER                          = 0x8004
+	EVENT_OBJECT_FOCUS                            = 0x8005
+	EVENT_OBJECT_SELECTION                        = 0x8006
+	EVENT_OBJECT_SELECTIONADD                     = 0x8007
+	EVENT_OBJECT_SELECTIONREMOVE                  = 0x8008
+	EVENT_OBJECT_SELECTIONWITHIN                  = 0x8009
+	EVENT_OBJECT_STATECHANGE                      = 0x800A
+	EVENT_OBJECT_LOCATIONCHANGE                   = 0x800B
+	EVENT_OBJECT_NAMECHANGE                       = 0x800C
+	EVENT_OBJECT_DESCRIPTIONCHANGE                = 0x800D
+	EVENT_OBJECT_VALUECHANGE                      = 0x800E
+	EVENT_OBJECT_PARENTCHANGE                     = 0x800F
+	EVENT_OBJECT_HELPCHANGE                       = 0x8010
+	EVENT_OBJECT_DEFACTIONCHANGE                  = 0x8011
+	EVENT_OBJECT_ACCELERATORCHANGE                = 0x8012
+	EVENT_OBJECT_INVOKED                          = 0x8013
+	EVENT_OBJECT_TEXTSELECTIONCHANGED             = 0x8014
+	EVENT_OBJECT_CONTENTSCROLLED                  = 0x8015
+	EVENT_SYSTEM_ARRANGMENTPREVIEW                = 0x8016
+	EVENT_OBJECT_CLOAKED                          = 0x8017
+	EVENT_OBJECT_UNCLOAKED                        = 0x8018
+	EVENT_OBJECT_LIVEREGIONCHANGED                = 0x8019
+	EVENT_OBJECT_HOSTEDOBJECTSINVALIDATED         = 0x8020
+	EVENT_OBJECT_DRAGSTART                        = 0x8021
+	EVENT_OBJECT_DRAGCANCEL                       = 0x8022
+	EVENT_OBJECT_DRAGCOMPLETE                     = 0x8023
+	EVENT_OBJECT_DRAGENTER                        = 0x8024
+	EVENT_OBJECT_DRAGLEAVE                        = 0x8025
+	EVENT_OBJECT_DRAGDROPPED                      = 0x8026
+	EVENT_OBJECT_IME_SHOW                         = 0x8027
+	EVENT_OBJECT_IME_HIDE                         = 0x8028
+	EVENT_OBJECT_IME_CHANGE                       = 0x8029
+	EVENT_OBJECT_TEXTEDIT_CONVERSIONTARGETCHANGED = 0x8030
+	EVENT_OBJECT_END                              = 0x80FF
+
+	EVENT_AIA_START = 0xa000
+	EVENT_AIA_END   = 0xafff
 
 	WINEVENT_OUTOFCONTEXT   = 0x0000
 	WINEVENT_SKIPOWNTHREAD  = 0x0001
@@ -1034,6 +1110,7 @@ const (
 // SystemParametersInfo actions
 const (
 	SPI_GETNONCLIENTMETRICS = 0x0029
+	SPI_GETHIGHCONTRAST     = 0x0042
 )
 
 // Dialog styles
@@ -1076,6 +1153,13 @@ const (
 	WA_ACTIVE      = 1
 	WA_CLICKACTIVE = 2
 	WA_INACTIVE    = 0
+)
+
+// Owner drawing actions
+const (
+	ODA_DRAWENTIRE = 0x0001
+	ODA_FOCUS      = 0x0002
+	ODA_SELECT     = 0x0004
 )
 
 // Owner drawing states
@@ -1354,6 +1438,33 @@ const (
 	MSGFLTINFO_ALLOWED_HIGHER           = 3
 )
 
+// TRACKMOUSEEVENT flags
+const (
+	TME_CANCEL    = 0x80000000
+	TME_HOVER     = 0x00000001
+	TME_LEAVE     = 0x00000002
+	TME_NONCLIENT = 0x00000010
+	TME_QUERY     = 0x40000000
+)
+
+// HIGHCONTRAST flags
+const (
+	HCF_HIGHCONTRASTON  = 0x00000001
+	HCF_AVAILABLE       = 0x00000002
+	HCF_HOTKEYACTIVE    = 0x00000004
+	HCF_CONFIRMHOTKEY   = 0x00000008
+	HCF_HOTKEYSOUND     = 0x00000010
+	HCF_INDICATOR       = 0x00000020
+	HCF_HOTKEYAVAILABLE = 0x00000040
+)
+
+// EDITWORDBREAKPROC codes
+const (
+	WB_LEFT        = 0
+	WB_RIGHT       = 1
+	WB_ISDELIMITER = 2
+)
+
 type NMBCDROPDOWN struct {
 	Hdr      NMHDR
 	RcButton RECT
@@ -1627,6 +1738,19 @@ type WINDOWPOS struct {
 	Flags           uint32
 }
 
+type TRACKMOUSEEVENT struct {
+	CbSize      uint32
+	DwFlags     uint32
+	HwndTrack   HWND
+	DwHoverTime uint32
+}
+
+type HIGHCONTRAST struct {
+	CbSize            uint32
+	DwFlags           uint32
+	LpszDefaultScheme *uint16
+}
+
 func GET_X_LPARAM(lp uintptr) int32 {
 	return int32(int16(LOWORD(uint32(lp))))
 }
@@ -1659,6 +1783,7 @@ var (
 	createWindowEx              *windows.LazyProc
 	deferWindowPos              *windows.LazyProc
 	defWindowProc               *windows.LazyProc
+	deleteMenu                  *windows.LazyProc
 	destroyIcon                 *windows.LazyProc
 	destroyMenu                 *windows.LazyProc
 	destroyWindow               *windows.LazyProc
@@ -1669,6 +1794,7 @@ var (
 	drawFocusRect               *windows.LazyProc
 	drawTextEx                  *windows.LazyProc
 	emptyClipboard              *windows.LazyProc
+	enableMenuItem              *windows.LazyProc
 	enableWindow                *windows.LazyProc
 	endDeferWindowPos           *windows.LazyProc
 	endDialog                   *windows.LazyProc
@@ -1684,17 +1810,23 @@ var (
 	getCursorPos                *windows.LazyProc
 	getDC                       *windows.LazyProc
 	getDesktopWindow            *windows.LazyProc
+	getDlgItem                  *windows.LazyProc
 	getDpiForWindow             *windows.LazyProc
 	getFocus                    *windows.LazyProc
 	getForegroundWindow         *windows.LazyProc
 	getIconInfo                 *windows.LazyProc
 	getKeyState                 *windows.LazyProc
+	getMenuCheckMarkDimensions  *windows.LazyProc
 	getMenuInfo                 *windows.LazyProc
+	getMenuItemCount            *windows.LazyProc
+	getMenuItemID               *windows.LazyProc
+	getMenuItemInfo             *windows.LazyProc
 	getMessage                  *windows.LazyProc
 	getMonitorInfo              *windows.LazyProc
 	getParent                   *windows.LazyProc
 	getRawInputData             *windows.LazyProc
 	getScrollInfo               *windows.LazyProc
+	getSubMenu                  *windows.LazyProc
 	getSysColor                 *windows.LazyProc
 	getSysColorBrush            *windows.LazyProc
 	getSystemMenu               *windows.LazyProc
@@ -1725,11 +1857,13 @@ var (
 	messageBox                  *windows.LazyProc
 	monitorFromWindow           *windows.LazyProc
 	moveWindow                  *windows.LazyProc
+	notifyWinEvent              *windows.LazyProc
 	unregisterClass             *windows.LazyProc
 	openClipboard               *windows.LazyProc
 	peekMessage                 *windows.LazyProc
 	postMessage                 *windows.LazyProc
 	postQuitMessage             *windows.LazyProc
+	redrawWindow                *windows.LazyProc
 	registerClassEx             *windows.LazyProc
 	registerHotKey              *windows.LazyProc
 	registerRawInputDevices     *windows.LazyProc
@@ -1751,6 +1885,7 @@ var (
 	setMenu                     *windows.LazyProc
 	setMenuDefaultItem          *windows.LazyProc
 	setMenuInfo                 *windows.LazyProc
+	setMenuItemBitmaps          *windows.LazyProc
 	setMenuItemInfo             *windows.LazyProc
 	setParent                   *windows.LazyProc
 	setRect                     *windows.LazyProc
@@ -1763,6 +1898,8 @@ var (
 	setWindowPos                *windows.LazyProc
 	showWindow                  *windows.LazyProc
 	systemParametersInfo        *windows.LazyProc
+	trackMouseEvent             *windows.LazyProc
+	trackPopupMenu              *windows.LazyProc
 	trackPopupMenuEx            *windows.LazyProc
 	translateMessage            *windows.LazyProc
 	unhookWinEvent              *windows.LazyProc
@@ -1798,6 +1935,7 @@ func init() {
 	createWindowEx = libuser32.NewProc("CreateWindowExW")
 	deferWindowPos = libuser32.NewProc("DeferWindowPos")
 	defWindowProc = libuser32.NewProc("DefWindowProcW")
+	deleteMenu = libuser32.NewProc("DeleteMenu")
 	destroyIcon = libuser32.NewProc("DestroyIcon")
 	destroyMenu = libuser32.NewProc("DestroyMenu")
 	destroyWindow = libuser32.NewProc("DestroyWindow")
@@ -1808,6 +1946,7 @@ func init() {
 	drawMenuBar = libuser32.NewProc("DrawMenuBar")
 	drawTextEx = libuser32.NewProc("DrawTextExW")
 	emptyClipboard = libuser32.NewProc("EmptyClipboard")
+	enableMenuItem = libuser32.NewProc("EnableMenuItem")
 	enableWindow = libuser32.NewProc("EnableWindow")
 	endDeferWindowPos = libuser32.NewProc("EndDeferWindowPos")
 	endDialog = libuser32.NewProc("EndDialog")
@@ -1823,17 +1962,23 @@ func init() {
 	getCursorPos = libuser32.NewProc("GetCursorPos")
 	getDC = libuser32.NewProc("GetDC")
 	getDesktopWindow = libuser32.NewProc("GetDesktopWindow")
+	getDlgItem = libuser32.NewProc("GetDlgItem")
 	getDpiForWindow = libuser32.NewProc("GetDpiForWindow")
 	getFocus = libuser32.NewProc("GetFocus")
 	getForegroundWindow = libuser32.NewProc("GetForegroundWindow")
 	getIconInfo = libuser32.NewProc("GetIconInfo")
 	getKeyState = libuser32.NewProc("GetKeyState")
+	getMenuCheckMarkDimensions = libuser32.NewProc("GetMenuCheckMarkDimensions")
 	getMenuInfo = libuser32.NewProc("GetMenuInfo")
+	getMenuItemCount = libuser32.NewProc("GetMenuItemCount")
+	getMenuItemID = libuser32.NewProc("GetMenuItemID")
+	getMenuItemInfo = libuser32.NewProc("GetMenuItemInfoW")
 	getMessage = libuser32.NewProc("GetMessageW")
 	getMonitorInfo = libuser32.NewProc("GetMonitorInfoW")
 	getParent = libuser32.NewProc("GetParent")
 	getRawInputData = libuser32.NewProc("GetRawInputData")
 	getScrollInfo = libuser32.NewProc("GetScrollInfo")
+	getSubMenu = libuser32.NewProc("GetSubMenu")
 	getSysColor = libuser32.NewProc("GetSysColor")
 	getSysColorBrush = libuser32.NewProc("GetSysColorBrush")
 	getSystemMenu = libuser32.NewProc("GetSystemMenu")
@@ -1869,11 +2014,13 @@ func init() {
 	messageBox = libuser32.NewProc("MessageBoxW")
 	monitorFromWindow = libuser32.NewProc("MonitorFromWindow")
 	moveWindow = libuser32.NewProc("MoveWindow")
+	notifyWinEvent = libuser32.NewProc("NotifyWinEvent")
 	unregisterClass = libuser32.NewProc("UnregisterClassW")
 	openClipboard = libuser32.NewProc("OpenClipboard")
 	peekMessage = libuser32.NewProc("PeekMessageW")
 	postMessage = libuser32.NewProc("PostMessageW")
 	postQuitMessage = libuser32.NewProc("PostQuitMessage")
+	redrawWindow = libuser32.NewProc("RedrawWindow")
 	registerClassEx = libuser32.NewProc("RegisterClassExW")
 	registerHotKey = libuser32.NewProc("RegisterHotKey")
 	registerRawInputDevices = libuser32.NewProc("RegisterRawInputDevices")
@@ -1895,6 +2042,7 @@ func init() {
 	setMenu = libuser32.NewProc("SetMenu")
 	setMenuDefaultItem = libuser32.NewProc("SetMenuDefaultItem")
 	setMenuInfo = libuser32.NewProc("SetMenuInfo")
+	setMenuItemBitmaps = libuser32.NewProc("SetMenuItemBitmaps")
 	setMenuItemInfo = libuser32.NewProc("SetMenuItemInfoW")
 	setRect = libuser32.NewProc("SetRect")
 	setParent = libuser32.NewProc("SetParent")
@@ -1912,6 +2060,8 @@ func init() {
 	setWindowPos = libuser32.NewProc("SetWindowPos")
 	showWindow = libuser32.NewProc("ShowWindow")
 	systemParametersInfo = libuser32.NewProc("SystemParametersInfoW")
+	trackMouseEvent = libuser32.NewProc("TrackMouseEvent")
+	trackPopupMenu = libuser32.NewProc("TrackPopupMenu")
 	trackPopupMenuEx = libuser32.NewProc("TrackPopupMenuEx")
 	translateMessage = libuser32.NewProc("TranslateMessage")
 	unhookWinEvent = libuser32.NewProc("UnhookWinEvent")
@@ -2125,6 +2275,15 @@ func DefWindowProc(hWnd HWND, Msg uint32, wParam, lParam uintptr) uintptr {
 	return ret
 }
 
+func DeleteMenu(hMenu HMENU, uPosition uint32, uFlags uint32) bool {
+	ret, _, _ := syscall.Syscall(deleteMenu.Addr(), 3,
+		uintptr(hMenu),
+		uintptr(uPosition),
+		uintptr(uFlags))
+
+	return ret != 0
+}
+
 func DestroyIcon(hIcon HICON) bool {
 	ret, _, _ := syscall.Syscall(destroyIcon.Addr(), 1,
 		uintptr(hIcon),
@@ -2223,6 +2382,15 @@ func EmptyClipboard() bool {
 		0,
 		0,
 		0)
+
+	return ret != 0
+}
+
+func EnableMenuItem(hMenu HMENU, uIDEnableItem uint32, uEnable uint32) bool {
+	ret, _, _ := syscall.Syscall(enableMenuItem.Addr(), 3,
+		uintptr(hMenu),
+		uintptr(uIDEnableItem),
+		uintptr(uEnable))
 
 	return ret != 0
 }
@@ -2364,6 +2532,15 @@ func GetDC(hWnd HWND) HDC {
 	return HDC(ret)
 }
 
+func GetDlgItem(hDlg HWND, nIDDlgItem int32) HWND {
+	ret, _, _ := syscall.Syscall(getDlgItem.Addr(), 2,
+		uintptr(hDlg),
+		uintptr(nIDDlgItem),
+		0)
+
+	return HWND(ret)
+}
+
 func GetDpiForWindow(hwnd HWND) uint32 {
 	if getDpiForWindow.Find() != nil {
 		hdc := GetDC(hwnd)
@@ -2416,10 +2593,49 @@ func GetKeyState(nVirtKey int32) int16 {
 	return int16(ret)
 }
 
+func GetMenuCheckMarkDimensions() int32 {
+	ret, _, _ := syscall.Syscall(getMenuCheckMarkDimensions.Addr(), 0,
+		0,
+		0,
+		0)
+
+	return int32(ret)
+}
+
 func GetMenuInfo(hmenu HMENU, lpcmi *MENUINFO) bool {
 	ret, _, _ := syscall.Syscall(getMenuInfo.Addr(), 2,
 		uintptr(hmenu),
 		uintptr(unsafe.Pointer(lpcmi)),
+		0)
+
+	return ret != 0
+}
+
+func GetMenuItemCount(hMenu HMENU) int32 {
+	ret, _, _ := syscall.Syscall(getMenuItemCount.Addr(), 1,
+		uintptr(hMenu),
+		0,
+		0)
+
+	return int32(ret)
+}
+
+func GetMenuItemID(hMenu HMENU, nPos int32) uint32 {
+	ret, _, _ := syscall.Syscall(getMenuItemID.Addr(), 2,
+		uintptr(hMenu),
+		uintptr(nPos),
+		0)
+
+	return uint32(ret)
+}
+
+func GetMenuItemInfo(hmenu HMENU, item uint32, fByPosition BOOL, lpmii *MENUITEMINFO) bool {
+	ret, _, _ := syscall.Syscall6(getMenuItemInfo.Addr(), 4,
+		uintptr(hmenu),
+		uintptr(item),
+		uintptr(fByPosition),
+		uintptr(unsafe.Pointer(lpmii)),
+		0,
 		0)
 
 	return ret != 0
@@ -2474,6 +2690,15 @@ func GetScrollInfo(hwnd HWND, fnBar int32, lpsi *SCROLLINFO) bool {
 		uintptr(unsafe.Pointer(lpsi)))
 
 	return ret != 0
+}
+
+func GetSubMenu(hMenu HMENU, nPos int32) HMENU {
+	ret, _, _ := syscall.Syscall(getSubMenu.Addr(), 2,
+		uintptr(hMenu),
+		uintptr(nPos),
+		0)
+
+	return HMENU(ret)
 }
 
 func GetSysColor(nIndex int) uint32 {
@@ -2778,6 +3003,16 @@ func MoveWindow(hWnd HWND, x, y, width, height int32, repaint bool) bool {
 	return ret != 0
 }
 
+func NotifyWinEvent(event uint32, hwnd HWND, idObject, idChild int32) {
+	syscall.Syscall6(notifyWinEvent.Addr(), 4,
+		uintptr(event),
+		uintptr(hwnd),
+		uintptr(idObject),
+		uintptr(idChild),
+		0,
+		0)
+}
+
 func UnregisterClass(name *uint16) bool {
 	ret, _, _ := syscall.Syscall(unregisterClass.Addr(), 1,
 		uintptr(unsafe.Pointer(name)),
@@ -2825,6 +3060,38 @@ func PostQuitMessage(exitCode int32) {
 		uintptr(exitCode),
 		0,
 		0)
+}
+
+const (
+	// RedrawWindow() flags
+	RDW_INVALIDATE    = 0x0001
+	RDW_INTERNALPAINT = 0x0002
+	RDW_ERASE         = 0x0004
+
+	RDW_VALIDATE        = 0x0008
+	RDW_NOINTERNALPAINT = 0x0010
+	RDW_NOERASE         = 0x0020
+
+	RDW_NOCHILDREN  = 0x0040
+	RDW_ALLCHILDREN = 0x0080
+
+	RDW_UPDATENOW = 0x0100
+	RDW_ERASENOW  = 0x0200
+
+	RDW_FRAME   = 0x0400
+	RDW_NOFRAME = 0x0800
+)
+
+func RedrawWindow(hWnd HWND, lprcUpdate *RECT, hrgnUpdate HRGN, flags uint32) bool {
+	ret, _, _ := syscall.Syscall6(redrawWindow.Addr(), 4,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(lprcUpdate)),
+		uintptr(hrgnUpdate),
+		uintptr(flags),
+		0,
+		0)
+
+	return ret != 0
 }
 
 func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
@@ -3026,6 +3293,18 @@ func SetMenuInfo(hmenu HMENU, lpcmi *MENUINFO) bool {
 	return ret != 0
 }
 
+func SetMenuItemBitmaps(hMenu HMENU, uPosition uint32, uFlags uint32, hBitmapUnchecked HBITMAP, hBitmapChecked HBITMAP) bool {
+	ret, _, _ := syscall.Syscall6(setMenuItemBitmaps.Addr(), 5,
+		uintptr(hMenu),
+		uintptr(uPosition),
+		uintptr(uFlags),
+		uintptr(hBitmapUnchecked),
+		uintptr(hBitmapChecked),
+		0)
+
+	return ret != 0
+}
+
 func SetMenuItemInfo(hMenu HMENU, uItem uint32, fByPosition bool, lpmii *MENUITEMINFO) bool {
 	ret, _, _ := syscall.Syscall6(setMenuItemInfo.Addr(), 4,
 		uintptr(hMenu),
@@ -3164,6 +3443,30 @@ func SystemParametersInfo(uiAction, uiParam uint32, pvParam unsafe.Pointer, fWin
 		0)
 
 	return ret != 0
+}
+
+func TrackMouseEvent(lpEventTrack *TRACKMOUSEEVENT) bool {
+	ret, _, _ := syscall.Syscall(trackMouseEvent.Addr(), 1,
+		uintptr(unsafe.Pointer(lpEventTrack)),
+		0,
+		0)
+
+	return ret != 0
+}
+
+func TrackPopupMenu(hMenu HMENU, uFlags uint32, x, y int32, nReserved int32, hWnd HWND, prcRect *RECT) uint32 {
+	ret, _, _ := syscall.Syscall9(trackPopupMenu.Addr(), 7,
+		uintptr(hMenu),
+		uintptr(uFlags),
+		uintptr(x),
+		uintptr(y),
+		uintptr(nReserved),
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(prcRect)),
+		0,
+		0)
+
+	return uint32(ret)
 }
 
 func TrackPopupMenuEx(hMenu HMENU, fuFlags uint32, x, y int32, hWnd HWND, lptpm *TPMPARAMS) BOOL {
