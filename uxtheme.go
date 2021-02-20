@@ -462,6 +462,23 @@ const (
 	TS_DRAW
 )
 
+type IMMERSIVE_HC_CACHE_MODE int
+
+const (
+	IHCM_USE_CACHED_VALUE IMMERSIVE_HC_CACHE_MODE = iota
+	IHCM_REFRESH
+)
+
+type PreferredAppMode int
+
+const (
+	Default PreferredAppMode = iota
+	AllowDark
+	ForceDark
+	ForceLight
+	Max
+)
+
 type DTTOPTS struct {
 	DwSize              uint32
 	DwFlags             uint32
@@ -618,4 +635,68 @@ func SetWindowTheme(hwnd HWND, pszSubAppName, pszSubIdList *uint16) HRESULT {
 		uintptr(unsafe.Pointer(pszSubIdList)))
 
 	return HRESULT(ret)
+}
+
+func ShouldAppsUseDarkMode() bool {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 132)
+	if err != nil {
+		return false
+	}
+	ret, _, _ := syscall.Syscall(proc, 0, 0, 0, 0)
+	return ret != 0
+
+}
+
+func IsDarkModeAllowedForWindow(hwnd HWND) bool {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 137)
+	if err != nil {
+		return false
+	}
+	ret, _, _ := syscall.Syscall(proc, 1, uintptr(hwnd), 0, 0)
+	return ret != 0
+
+}
+
+func GetIsImmersiveColorUsingHighContrast(mode IMMERSIVE_HC_CACHE_MODE) bool {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 106)
+	if err != nil {
+		return false
+	}
+	ret, _, _ := syscall.Syscall(proc, 1, uintptr(mode), 0, 0)
+	return ret != 0
+
+}
+
+func RefreshImmersiveColorPolicyState() {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 104)
+	if err != nil {
+		return
+	}
+	syscall.Syscall(proc, 0, 0, 0, 0)
+}
+
+func AllowDarkModeForWindow(hwnd HWND, allow bool) bool {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 133)
+	if err != nil {
+		return false
+	}
+	ret, _, _ := syscall.Syscall(proc, 2, uintptr(hwnd), uintptr(BoolToBOOL(allow)), 0)
+	return ret != 0
+}
+
+func SetPreferredAppMode(mode PreferredAppMode) bool {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 135)
+	if err != nil {
+		return false
+	}
+	ret, _, _ := syscall.Syscall(proc, 1, uintptr(mode), 0, 0)
+	return ret != 0
+}
+
+func FlushMenuThemes() {
+	proc, err := windows.GetProcAddressByOrdinal(windows.Handle(libuxtheme.Handle()), 136)
+	if err != nil {
+		return
+	}
+	syscall.Syscall(proc, 0, 0, 0, 0)
 }
