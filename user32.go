@@ -479,6 +479,14 @@ const (
 	UISF_ACTIVE    = 0x4
 )
 
+// Key Modifiers
+const (
+	MOD_ALT     = 0x0001
+	MOD_CONTROL = 0x0002
+	MOD_SHIFT   = 0x0004
+	MOD_WIN     = 0x0008
+)
+
 // Virtual key codes
 const (
 	VK_LBUTTON             = 1
@@ -1758,8 +1766,8 @@ var (
 	// Functions
 	addClipboardFormatListener  *windows.LazyProc
 	adjustWindowRect            *windows.LazyProc
-	attachThreadInput           *windows.LazyProc
 	animateWindow               *windows.LazyProc
+	attachThreadInput           *windows.LazyProc
 	beginDeferWindowPos         *windows.LazyProc
 	beginPaint                  *windows.LazyProc
 	bringWindowToTop            *windows.LazyProc
@@ -1857,6 +1865,7 @@ var (
 	postQuitMessage             *windows.LazyProc
 	redrawWindow                *windows.LazyProc
 	registerClassEx             *windows.LazyProc
+	registerHotKey              *windows.LazyProc
 	registerRawInputDevices     *windows.LazyProc
 	registerWindowMessage       *windows.LazyProc
 	releaseCapture              *windows.LazyProc
@@ -1894,6 +1903,7 @@ var (
 	trackPopupMenuEx            *windows.LazyProc
 	translateMessage            *windows.LazyProc
 	unhookWinEvent              *windows.LazyProc
+	unregisterHotKey            *windows.LazyProc
 	updateWindow                *windows.LazyProc
 	windowFromDC                *windows.LazyProc
 	windowFromPoint             *windows.LazyProc
@@ -1908,8 +1918,8 @@ func init() {
 	// Functions
 	addClipboardFormatListener = libuser32.NewProc("AddClipboardFormatListener")
 	adjustWindowRect = libuser32.NewProc("AdjustWindowRect")
-	attachThreadInput = libuser32.NewProc("AttachThreadInput")
 	animateWindow = libuser32.NewProc("AnimateWindow")
+	attachThreadInput = libuser32.NewProc("AttachThreadInput")
 	beginDeferWindowPos = libuser32.NewProc("BeginDeferWindowPos")
 	beginPaint = libuser32.NewProc("BeginPaint")
 	bringWindowToTop = libuser32.NewProc("BringWindowToTop")
@@ -2012,6 +2022,7 @@ func init() {
 	postQuitMessage = libuser32.NewProc("PostQuitMessage")
 	redrawWindow = libuser32.NewProc("RedrawWindow")
 	registerClassEx = libuser32.NewProc("RegisterClassExW")
+	registerHotKey = libuser32.NewProc("RegisterHotKey")
 	registerRawInputDevices = libuser32.NewProc("RegisterRawInputDevices")
 	registerWindowMessage = libuser32.NewProc("RegisterWindowMessageW")
 	releaseCapture = libuser32.NewProc("ReleaseCapture")
@@ -2054,6 +2065,7 @@ func init() {
 	trackPopupMenuEx = libuser32.NewProc("TrackPopupMenuEx")
 	translateMessage = libuser32.NewProc("TranslateMessage")
 	unhookWinEvent = libuser32.NewProc("UnhookWinEvent")
+	unregisterHotKey = libuser32.NewProc("UnregisterHotKey")
 	updateWindow = libuser32.NewProc("UpdateWindow")
 	windowFromDC = libuser32.NewProc("WindowFromDC")
 	windowFromPoint = libuser32.NewProc("WindowFromPoint")
@@ -2081,20 +2093,20 @@ func AdjustWindowRect(lpRect *RECT, dwStyle uint32, bMenu bool) bool {
 	return ret != 0
 }
 
-func AttachThreadInput(idAttach int32, idAttachTo int32, fAttach bool) bool {
-	ret, _, _ := syscall.Syscall(attachThreadInput.Addr(), 3,
-		uintptr(idAttach),
-		uintptr(idAttachTo),
-		uintptr(BoolToBOOL(fAttach)))
-
-	return ret != 0
-}
-
 func AnimateWindow(hwnd HWND, dwTime, dwFlags uint32) bool {
 	ret, _, _ := syscall.Syscall(animateWindow.Addr(), 3,
 		uintptr(hwnd),
 		uintptr(dwTime),
 		uintptr(dwFlags))
+
+	return ret != 0
+}
+
+func AttachThreadInput(idAttach uint32, idAttachTo uint32, fAttach bool) bool {
+	ret, _, _ := syscall.Syscall(attachThreadInput.Addr(), 3,
+		uintptr(idAttach),
+		uintptr(idAttachTo),
+		uintptr(BoolToBOOL(fAttach)))
 
 	return ret != 0
 }
@@ -2106,15 +2118,6 @@ func BeginDeferWindowPos(nNumWindows int32) HDWP {
 		0)
 
 	return HDWP(ret)
-}
-
-func GetWindowThreadProcessId(hwnd HWND, processId *uint32) uint32 {
-	ret, _, _ := syscall.Syscall(getWindowThreadProcessId.Addr(), 2,
-		uintptr(hwnd),
-		uintptr(unsafe.Pointer(processId)),
-		0)
-
-	return uint32(ret)
 }
 
 func BeginPaint(hwnd HWND, lpPaint *PAINTSTRUCT) HDC {
@@ -2791,6 +2794,15 @@ func GetWindowRect(hWnd HWND, rect *RECT) bool {
 	return ret != 0
 }
 
+func GetWindowThreadProcessId(hWnd HWND, lpdwProcessId *uint32) uint32 {
+	ret, _, _ := syscall.Syscall(getWindowThreadProcessId.Addr(), 2,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(lpdwProcessId)),
+		0)
+
+	return uint32(ret)
+}
+
 func InsertMenuItem(hMenu HMENU, uItem uint32, fByPosition bool, lpmii *MENUITEMINFO) bool {
 	ret, _, _ := syscall.Syscall6(insertMenuItem.Addr(), 4,
 		uintptr(hMenu),
@@ -3089,6 +3101,18 @@ func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
 		0)
 
 	return ATOM(ret)
+}
+
+func RegisterHotKey(hwnd HWND, id int, fsModifiers, vk uint) bool {
+	ret, _, _ := syscall.Syscall6(registerHotKey.Addr(), 4,
+		uintptr(hwnd),
+		uintptr(id),
+		uintptr(fsModifiers),
+		uintptr(vk),
+		0,
+		0)
+
+	return ret != 0
 }
 
 func RegisterRawInputDevices(pRawInputDevices *RAWINPUTDEVICE, uiNumDevices uint32, cbSize uint32) bool {
@@ -3468,6 +3492,15 @@ func TranslateMessage(msg *MSG) bool {
 
 func UnhookWinEvent(hWinHookEvent HWINEVENTHOOK) bool {
 	ret, _, _ := syscall.Syscall(unhookWinEvent.Addr(), 1, uintptr(hWinHookEvent), 0, 0)
+	return ret != 0
+}
+
+func UnregisterHotKey(hwnd HWND, id int) bool {
+	ret, _, _ := syscall.Syscall(unregisterHotKey.Addr(), 2,
+		uintptr(hwnd),
+		uintptr(id),
+		0)
+
 	return ret != 0
 }
 

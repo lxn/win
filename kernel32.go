@@ -65,6 +65,7 @@ var (
 	findResource                       *windows.LazyProc
 	getConsoleTitle                    *windows.LazyProc
 	getConsoleWindow                   *windows.LazyProc
+	getCurrentProcessId                *windows.LazyProc
 	getCurrentThreadId                 *windows.LazyProc
 	getLastError                       *windows.LazyProc
 	getLocaleInfo                      *windows.LazyProc
@@ -151,6 +152,7 @@ func init() {
 	findResource = libkernel32.NewProc("FindResourceW")
 	getConsoleTitle = libkernel32.NewProc("GetConsoleTitleW")
 	getConsoleWindow = libkernel32.NewProc("GetConsoleWindow")
+	getCurrentProcessId = libkernel32.NewProc("GetCurrentProcessId")
 	getCurrentThreadId = libkernel32.NewProc("GetCurrentThreadId")
 	getLastError = libkernel32.NewProc("GetLastError")
 	getLocaleInfo = libkernel32.NewProc("GetLocaleInfoW")
@@ -240,6 +242,15 @@ func GetConsoleWindow() HWND {
 		0)
 
 	return HWND(ret)
+}
+
+func GetCurrentProcessId() uint32 {
+	ret, _, _ := syscall.Syscall(getCurrentProcessId.Addr(), 0,
+		0,
+		0,
+		0)
+
+	return uint32(ret)
 }
 
 func GetCurrentThreadId() uint32 {
