@@ -22,6 +22,7 @@ const (
 	LVM_FIRST                    = 0x1000
 	LVM_SETBKCOLOR               = LVM_FIRST + 1
 	LVM_SETIMAGELIST             = LVM_FIRST + 3
+	LVM_GETITEMCOUNT             = LVM_FIRST + 4
 	LVM_GETITEM                  = LVM_FIRST + 75
 	LVM_SETITEM                  = LVM_FIRST + 76
 	LVM_INSERTITEM               = LVM_FIRST + 77
@@ -30,8 +31,11 @@ const (
 	LVM_GETCALLBACKMASK          = LVM_FIRST + 10
 	LVM_SETCALLBACKMASK          = LVM_FIRST + 11
 	LVM_GETNEXTITEM              = LVM_FIRST + 12
-	LVM_FINDITEM                 = LVM_FIRST + 83
+	LVM_FINDITEMA                = LVM_FIRST + 13
 	LVM_GETITEMRECT              = LVM_FIRST + 14
+	LVM_SETITEMPOSITION          = LVM_FIRST + 15
+	LVM_GETITEMPOSITION          = LVM_FIRST + 16
+	LVM_FINDITEM                 = LVM_FIRST + 83
 	LVM_GETSTRINGWIDTH           = LVM_FIRST + 87
 	LVM_HITTEST                  = LVM_FIRST + 18
 	LVM_ENSUREVISIBLE            = LVM_FIRST + 19

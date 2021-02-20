@@ -1470,14 +1470,14 @@ type MONITORINFO struct {
 }
 
 type (
-	HACCEL    HANDLE
-	HCURSOR   HANDLE
-	HDWP      HANDLE
-	HICON     HANDLE
-	HMENU     HANDLE
-	HMONITOR  HANDLE
+	HACCEL HANDLE
+	HCURSOR HANDLE
+	HDWP HANDLE
+	HICON HANDLE
+	HMENU HANDLE
+	HMONITOR HANDLE
 	HRAWINPUT HANDLE
-	HWND      HANDLE
+	HWND HANDLE
 )
 
 type MSG struct {
@@ -1793,6 +1793,7 @@ var (
 	endPaint                    *windows.LazyProc
 	enumChildWindows            *windows.LazyProc
 	findWindow                  *windows.LazyProc
+	findWindowEx                *windows.LazyProc
 	getActiveWindow             *windows.LazyProc
 	getAncestor                 *windows.LazyProc
 	getCaretPos                 *windows.LazyProc
@@ -1866,6 +1867,7 @@ var (
 	sendDlgItemMessage          *windows.LazyProc
 	sendInput                   *windows.LazyProc
 	sendMessage                 *windows.LazyProc
+	sendMessageTimeout          *windows.LazyProc
 	setActiveWindow             *windows.LazyProc
 	setCapture                  *windows.LazyProc
 	setClipboardData            *windows.LazyProc
@@ -1943,6 +1945,7 @@ func init() {
 	endPaint = libuser32.NewProc("EndPaint")
 	enumChildWindows = libuser32.NewProc("EnumChildWindows")
 	findWindow = libuser32.NewProc("FindWindowW")
+	findWindowEx = libuser32.NewProc("FindWindowExW")
 	getActiveWindow = libuser32.NewProc("GetActiveWindow")
 	getAncestor = libuser32.NewProc("GetAncestor")
 	getCaretPos = libuser32.NewProc("GetCaretPos")
@@ -2021,6 +2024,7 @@ func init() {
 	sendDlgItemMessage = libuser32.NewProc("SendDlgItemMessageW")
 	sendInput = libuser32.NewProc("SendInput")
 	sendMessage = libuser32.NewProc("SendMessageW")
+	sendMessageTimeout = libuser32.NewProc("SendMessageTimeoutW")
 	setActiveWindow = libuser32.NewProc("SetActiveWindow")
 	setCapture = libuser32.NewProc("SetCapture")
 	setClipboardData = libuser32.NewProc("SetClipboardData")
@@ -2442,6 +2446,17 @@ func FindWindow(lpClassName, lpWindowName *uint16) HWND {
 		uintptr(unsafe.Pointer(lpClassName)),
 		uintptr(unsafe.Pointer(lpWindowName)),
 		0)
+
+	return HWND(ret)
+}
+
+func FindWindowEx(hWndParent, hWndChildAfter HWND, lpszClass, lpszWindow *uint16) HWND {
+	ret, _, _ := syscall.Syscall6(findWindowEx.Addr(), 4,
+		uintptr(hWndParent),
+		uintptr(hWndChildAfter),
+		uintptr(unsafe.Pointer(lpszClass)),
+		uintptr(unsafe.Pointer(lpszWindow)),
+		0, 0)
 
 	return HWND(ret)
 }
@@ -3175,6 +3190,20 @@ func SendMessage(hWnd HWND, msg uint32, wParam, lParam uintptr) uintptr {
 		lParam,
 		0,
 		0)
+
+	return ret
+}
+
+func SendMessageTimeout(hWnd HWND, msg uint32, wParam, lParam uintptr, fuFlags, uTimeout uint32, lpdwResult uintptr) uintptr {
+	ret, _, _ := syscall.Syscall9(sendMessageTimeout.Addr(), 7,
+		uintptr(hWnd),
+		uintptr(msg),
+		wParam,
+		lParam,
+		uintptr(fuFlags),
+		uintptr(uTimeout),
+		lpdwResult,
+		0, 0)
 
 	return ret
 }
