@@ -535,7 +535,7 @@ func DrawThemeBackground(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pRect,
 
 func DrawThemeTextEx(hTheme HTHEME, hdc HDC, iPartId, iStateId int32, pszText *uint16, iCharCount int32, dwFlags uint32, pRect *RECT, pOptions *DTTOPTS) HRESULT {
 	if drawThemeTextEx.Find() != nil {
-		return HRESULT(0)
+		return -((E_NOTIMPL ^ 0xFFFFFFFF) + 1)
 	}
 	ret, _, _ := syscall.Syscall9(drawThemeTextEx.Addr(), 9,
 		uintptr(hTheme),
