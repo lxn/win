@@ -87,6 +87,8 @@ var (
 	setLastError                       *windows.LazyProc
 	sizeofResource                     *windows.LazyProc
 	systemTimeToFileTime               *windows.LazyProc
+	createMutexW                       *windows.LazyProc
+	releaseMutex                       *windows.LazyProc
 )
 
 type (
@@ -173,6 +175,8 @@ func init() {
 	setLastError = libkernel32.NewProc("SetLastError")
 	sizeofResource = libkernel32.NewProc("SizeofResource")
 	systemTimeToFileTime = libkernel32.NewProc("SystemTimeToFileTime")
+	createMutexW = libkernel32.NewProc("CreateMutexW")
+	releaseMutex = libkernel32.NewProc("ReleaseMutex")
 }
 
 func ActivateActCtx(ctx HANDLE) (uintptr, bool) {
@@ -448,4 +452,14 @@ func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
 		0)
 
 	return ret != 0
+}
+
+func CreateMutex(attr uintptr, bInitialOwner BOOL, lpName string) (HANDLE, syscall.Errno) {
+	name, _ := syscall.UTF16PtrFromString(lpName)
+	h, _, err := syscall.Syscall(createMutexW.Addr(), 3, attr, uintptr(bInitialOwner), uintptr(unsafe.Pointer(name)))
+	return HANDLE(h), err
+}
+func ReleaseMutex(handle HANDLE) bool {
+	b, _, _ := syscall.Syscall(releaseMutex.Addr(), 1, uintptr(handle), 0, 0)
+	return b == TRUE
 }
