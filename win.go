@@ -38,6 +38,8 @@ type (
 	HRESULT int32
 )
 
+const STANDARD_RIGHTS_REQUIRED = 0x000F0000
+
 func SUCCEEDED(hr HRESULT) bool {
 	return hr >= 0
 }

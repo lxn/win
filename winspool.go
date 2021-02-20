@@ -24,10 +24,24 @@ const (
 	PRINTER_ENUM_NETWORK     = 0x00000040
 )
 
+// Printer access flags
+const (
+	PRINTER_ACCESS_ADMINISTER     = 0x00000004
+	PRINTER_ACCESS_USE            = 0x00000008
+	PRINTER_ACCESS_MANAGE_LIMITED = 0x00000040
+	PRINTER_ALL_ACCESS            = (STANDARD_RIGHTS_REQUIRED | PRINTER_ACCESS_ADMINISTER | PRINTER_ACCESS_USE)
+)
+
 type PRINTER_INFO_4 struct {
 	PPrinterName *uint16
 	PServerName  *uint16
 	Attributes   uint32
+}
+
+type PRINTER_DEFAULTS struct {
+	PDatatype     *uint16
+	LPDevMode     *DEVMODE
+	DesiredAccess ACCESS_MASK
 }
 
 var (
@@ -39,6 +53,8 @@ var (
 	documentProperties *windows.LazyProc
 	enumPrinters       *windows.LazyProc
 	getDefaultPrinter  *windows.LazyProc
+  openPrinter        *windows.LazyProc
+	closePrinter       *windows.LazyProc
 )
 
 func init() {
@@ -50,6 +66,8 @@ func init() {
 	documentProperties = libwinspool.NewProc("DocumentPropertiesW")
 	enumPrinters = libwinspool.NewProc("EnumPrintersW")
 	getDefaultPrinter = libwinspool.NewProc("GetDefaultPrinterW")
+  openPrinter = libwinspool.NewProc("OpenPrinterW")
+	closePrinter = libwinspool.NewProc("ClosePrinter")
 }
 
 func DeviceCapabilities(pDevice, pPort *uint16, fwCapability uint16, pOutput *uint16, pDevMode *DEVMODE) uint32 {
@@ -96,6 +114,22 @@ func GetDefaultPrinter(pszBuffer *uint16, pcchBuffer *uint32) bool {
 		uintptr(unsafe.Pointer(pszBuffer)),
 		uintptr(unsafe.Pointer(pcchBuffer)),
 		0)
+
+	return ret != 0
+}
+
+func OpenPrinter(pPrinterName *uint16, phPrinter *HANDLE, pDefault *PRINTER_DEFAULTS) bool {
+	ret, _, _ := syscall.Syscall(openPrinter, 3,
+		uintptr(unsafe.Pointer(pPrinterName)),
+		uintptr(unsafe.Pointer(phPrinter)),
+		uintptr(unsafe.Pointer(pDefault)))
+
+	return ret != 0
+}
+
+func ClosePrinter(phPrinter *HANDLE) bool {
+	ret, _, _ := syscall.Syscall(closePrinter, 1,
+		uintptr(unsafe.Pointer(phPrinter)), 0, 0)
 
 	return ret != 0
 }
