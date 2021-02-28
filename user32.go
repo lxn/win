@@ -1857,6 +1857,7 @@ var (
 	postQuitMessage             *windows.LazyProc
 	redrawWindow                *windows.LazyProc
 	registerClassEx             *windows.LazyProc
+	registerHotKey              *windows.LazyProc
 	registerRawInputDevices     *windows.LazyProc
 	registerWindowMessage       *windows.LazyProc
 	releaseCapture              *windows.LazyProc
@@ -2012,6 +2013,7 @@ func init() {
 	postQuitMessage = libuser32.NewProc("PostQuitMessage")
 	redrawWindow = libuser32.NewProc("RedrawWindow")
 	registerClassEx = libuser32.NewProc("RegisterClassExW")
+	registerHotKey = libuser32.NewProc("RegisterHotKey")
 	registerRawInputDevices = libuser32.NewProc("RegisterRawInputDevices")
 	registerWindowMessage = libuser32.NewProc("RegisterWindowMessageW")
 	releaseCapture = libuser32.NewProc("ReleaseCapture")
@@ -3089,6 +3091,17 @@ func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
 		0)
 
 	return ATOM(ret)
+}
+
+func RegisterHotKey(hwnd HWND, id int, fsModifiers, vk uint) bool {
+	ret, _, _ := syscall.Syscall6(registerHotKey.Addr(), 4,
+		uintptr(hwnd),
+		uintptr(id),
+		uintptr(fsModifiers),
+		uintptr(vk),
+		0,
+		0)
+	return ret != 0
 }
 
 func RegisterRawInputDevices(pRawInputDevices *RAWINPUTDEVICE, uiNumDevices uint32, cbSize uint32) bool {
