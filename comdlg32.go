@@ -7,9 +7,10 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 // Common error codes
@@ -53,6 +54,59 @@ type CHOOSECOLOR struct {
 	LpfnHook       uintptr
 	LpTemplateName *uint16
 }
+
+type LPLOGFONT *LOGFONT
+
+type CHOOSEFONT struct {
+	LStructSize    uint32
+	HwndOwner      HWND
+	HDC            HDC
+	LpLogFont      LPLOGFONT
+	IPointSize     int32
+	Flags          uint32
+	RgbColors      COLORREF
+	LCustData      uintptr
+	LpfnHook       uintptr
+	LpTemplateName *uint16
+	HInstance      HWND
+	LpszStyle      *uint16
+	NFontType      uint16
+	NSizeMin       int32
+	NSizeMax       int32
+}
+
+// CHOOSEFONT flags
+const (
+	CF_APPLY                = 0x00000200
+	CF_ANSIONLY             = 0x00000400
+	CF_BOTH                 = 0x00000003
+	CF_EFFECTS              = 0x00000100
+	CF_ENABLEHOOK           = 0x00000008
+	CF_ENABLETEMPLATE       = 0x00000010
+	CF_ENABLETEMPLATEHANDLE = 0x00000020
+	CF_FIXEDPITCHONLY       = 0x00004000
+	CF_FORCEFONTEXIST       = 0x00010000
+	CF_INACTIVEFONTS        = 0x02000000
+	CF_INITTOLOGFONTSTRUCT  = 0x00000040
+	CF_LIMITSIZE            = 0x00002000
+	CF_NOOEMFONTS           = 0x00000800
+	CF_NOFACESEL            = 0x00080000
+	CF_NOSCRIPTSEL          = 0x00800000
+	CF_NOSIMULATIONS        = 0x00001000
+	CF_NOSIZESEL            = 0x00200000
+	CF_NOSTYLESEL           = 0x00100000
+	CF_NOVECTORFONTS        = 0x00000800
+	CF_NOVERTFONTS          = 0x01000000
+	CF_PRINTERFONTS         = 0x00000002
+	CF_SCALABLEONLY         = 0x00020000
+	CF_SCREENFONTS          = 0x00000001
+	CF_SCRIPTSONLY          = 0x00000400
+	CF_SELECTSCRIPT         = 0x00400000
+	CF_SHOWHELP             = 0x00000004
+	CF_TTONLY               = 0x00040000
+	CF_USESTYLE             = 0x00000080
+	CF_WYSIWYG              = 0x00008000
+)
 
 // PrintDlg specific error codes
 const (
@@ -236,6 +290,7 @@ var (
 
 	// Functions
 	chooseColor          *windows.LazyProc
+	chooseFont           *windows.LazyProc
 	commDlgExtendedError *windows.LazyProc
 	getOpenFileName      *windows.LazyProc
 	getSaveFileName      *windows.LazyProc
@@ -248,6 +303,7 @@ func init() {
 
 	// Functions
 	chooseColor = libcomdlg32.NewProc("ChooseColorW")
+	chooseFont = libcomdlg32.NewProc("ChooseFontW")
 	commDlgExtendedError = libcomdlg32.NewProc("CommDlgExtendedError")
 	getOpenFileName = libcomdlg32.NewProc("GetOpenFileNameW")
 	getSaveFileName = libcomdlg32.NewProc("GetSaveFileNameW")
@@ -260,6 +316,14 @@ func ChooseColor(lpcc *CHOOSECOLOR) bool {
 		0,
 		0)
 
+	return ret != 0
+}
+
+func ChooseFont(lpcc *CHOOSEFONT) bool {
+	ret, _, _ := syscall.Syscall(chooseFont.Addr(), 1,
+		uintptr(unsafe.Pointer(lpcc)),
+		0,
+		0)
 	return ret != 0
 }
 
