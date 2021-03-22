@@ -1795,6 +1795,7 @@ var (
 	findWindow                  *windows.LazyProc
 	getActiveWindow             *windows.LazyProc
 	getAncestor                 *windows.LazyProc
+	getCapture                  *windows.LazyProc
 	getCaretPos                 *windows.LazyProc
 	getClassName                *windows.LazyProc
 	getClientRect               *windows.LazyProc
@@ -1845,6 +1846,7 @@ var (
 	loadImage                   *windows.LazyProc
 	loadMenu                    *windows.LazyProc
 	loadString                  *windows.LazyProc
+	mapWindowPoints             *windows.LazyProc
 	messageBeep                 *windows.LazyProc
 	messageBox                  *windows.LazyProc
 	monitorFromWindow           *windows.LazyProc
@@ -1945,6 +1947,7 @@ func init() {
 	findWindow = libuser32.NewProc("FindWindowW")
 	getActiveWindow = libuser32.NewProc("GetActiveWindow")
 	getAncestor = libuser32.NewProc("GetAncestor")
+	getCapture = libuser32.NewProc("GetCapture")
 	getCaretPos = libuser32.NewProc("GetCaretPos")
 	getClassName = libuser32.NewProc("GetClassNameW")
 	getClientRect = libuser32.NewProc("GetClientRect")
@@ -2000,6 +2003,7 @@ func init() {
 	loadImage = libuser32.NewProc("LoadImageW")
 	loadMenu = libuser32.NewProc("LoadMenuW")
 	loadString = libuser32.NewProc("LoadStringW")
+	mapWindowPoints = libuser32.NewProc("MapWindowPoints")
 	messageBeep = libuser32.NewProc("MessageBeep")
 	messageBox = libuser32.NewProc("MessageBoxW")
 	monitorFromWindow = libuser32.NewProc("MonitorFromWindow")
@@ -2461,6 +2465,14 @@ func GetAncestor(hWnd HWND, gaFlags uint32) HWND {
 		uintptr(gaFlags),
 		0)
 
+	return HWND(ret)
+}
+
+func GetCapture() HWND {
+	ret, _, _ := syscall.Syscall(getCapture.Addr(), 0,
+		0,
+		0,
+		0)
 	return HWND(ret)
 }
 
@@ -2929,6 +2941,18 @@ func LoadString(instRes HINSTANCE, id uint32, buf *uint16, length int32) int32 {
 		uintptr(id),
 		uintptr(unsafe.Pointer(buf)),
 		uintptr(length),
+		0,
+		0)
+
+	return int32(ret)
+}
+
+func MapWindowPoints(hWndFrom, hWndTo HWND, lpPoints *POINT, cPoints uint32) int32 {
+	ret, _, _ := syscall.Syscall6(mapWindowPoints.Addr(), 4,
+		uintptr(hWndFrom),
+		uintptr(hWndTo),
+		uintptr(unsafe.Pointer(lpPoints)),
+		uintptr(cPoints),
 		0,
 		0)
 
