@@ -1066,6 +1066,7 @@ var (
 	deleteDC                *windows.LazyProc
 	deleteEnhMetaFile       *windows.LazyProc
 	deleteObject            *windows.LazyProc
+	describePixelFormat     *windows.LazyProc
 	ellipse                 *windows.LazyProc
 	endDoc                  *windows.LazyProc
 	endPage                 *windows.LazyProc
@@ -1146,6 +1147,7 @@ func init() {
 	deleteDC = libgdi32.NewProc("DeleteDC")
 	deleteEnhMetaFile = libgdi32.NewProc("DeleteEnhMetaFile")
 	deleteObject = libgdi32.NewProc("DeleteObject")
+	describePixelFormat = libgdi32.NewProc("DescribePixelFormat")
 	ellipse = libgdi32.NewProc("Ellipse")
 	endDoc = libgdi32.NewProc("EndDoc")
 	endPage = libgdi32.NewProc("EndPage")
@@ -1440,6 +1442,18 @@ func DeleteEnhMetaFile(hemf HENHMETAFILE) bool {
 func DeleteObject(hObject HGDIOBJ) bool {
 	ret, _, _ := syscall.Syscall(deleteObject.Addr(), 1,
 		uintptr(hObject),
+		0,
+		0)
+
+	return ret != 0
+}
+
+func DescribePixelFormat(hdc HDC, iPixelFormat int32, nBytes uint32, ppfd *PIXELFORMATDESCRIPTOR) bool {
+	ret, _, _ := syscall.Syscall6(describePixelFormat.Addr(), 4,
+		uintptr(hdc),
+		uintptr(iPixelFormat),
+		uintptr(nBytes),
+		uintptr(unsafe.Pointer(ppfd)),
 		0,
 		0)
 
