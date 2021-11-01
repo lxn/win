@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build windows
 // +build windows
 
 package win
@@ -14,6 +15,23 @@ import (
 
 type CSIDL uint32
 type HDROP HANDLE
+
+// SHAppBarMessage flags
+const (
+	ABM_NEW              = 0x00000000
+	ABM_REMOVE           = 0x00000001
+	ABM_QUERYPOS         = 0x00000002
+	ABM_SETPOS           = 0x00000003
+	ABM_GETSTATE         = 0x00000004
+	ABM_GETTASKBARPOS    = 0x00000005
+	ABM_ACTIVATE         = 0x00000006
+	ABM_GETAUTOHIDEBAR   = 0x00000007
+	ABM_SETAUTOHIDEBAR   = 0x00000008
+	ABM_WINDOWPOSCHANGED = 0x00000009
+	ABM_SETSTATE         = 0x0000000A
+	ABM_GETAUTOHIDEBAREX = 0x0000000B
+	ABM_SETAUTOHIDEBAREX = 0x0000000C
+)
 
 const (
 	CSIDL_DESKTOP                 = 0x00
@@ -269,6 +287,15 @@ const (
 	SIID_MAX_ICONS         = 175
 )
 
+type APPBARDATA struct {
+	CbSize           uint32
+	HWnd             HWND
+	UCallbackMessage uint32
+	UEdge            uint32
+	Rc               RECT
+	LParam           uintptr
+}
+
 type NOTIFYICONDATA struct {
 	CbSize           uint32
 	HWnd             HWND
@@ -323,6 +350,7 @@ var (
 	dragFinish             *windows.LazyProc
 	dragQueryFile          *windows.LazyProc
 	extractIcon            *windows.LazyProc
+	shAppBarMessage        *windows.LazyProc
 	shBrowseForFolder      *windows.LazyProc
 	shDefExtractIcon       *windows.LazyProc
 	shGetFileInfo          *windows.LazyProc
@@ -343,6 +371,7 @@ func init() {
 	dragFinish = libshell32.NewProc("DragFinish")
 	dragQueryFile = libshell32.NewProc("DragQueryFileW")
 	extractIcon = libshell32.NewProc("ExtractIconW")
+	shAppBarMessage = libshell32.NewProc("SHAppBarMessage")
 	shBrowseForFolder = libshell32.NewProc("SHBrowseForFolderW")
 	shDefExtractIcon = libshell32.NewProc("SHDefExtractIconW")
 	shGetFileInfo = libshell32.NewProc("SHGetFileInfoW")
@@ -389,6 +418,15 @@ func ExtractIcon(hInst HINSTANCE, exeFileName *uint16, iconIndex int32) HICON {
 		uintptr(iconIndex))
 
 	return HICON(ret)
+}
+
+func SHAppBarMessage(dwMessage uint32, pData *APPBARDATA) uintptr {
+	ret, _, _ := syscall.Syscall(shAppBarMessage.Addr(), 2,
+		uintptr(dwMessage),
+		uintptr(unsafe.Pointer(pData)),
+		0)
+
+	return ret
 }
 
 func SHBrowseForFolder(lpbi *BROWSEINFO) uintptr {
