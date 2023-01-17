@@ -125,28 +125,28 @@ type (
 
 // For struct details, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/ns-pdh-pdh_counter_info_w.
 type PDH_COUNTER_INFO struct {
-	dwLength        uint32
-	dwType          uint32
+	DwLength        uint32
+	DwType          uint32
 	CVersion        uint32
 	CStatus         uint32
-	lScale          int32
-	lDefaultScale   int32
-	dwUserData      *uint32
-	dwQueryUserData *uint32
-	szFullPath      *uint16 // pointer to a string
-	CounterPath     *PDH_COUNTER_PATH_ELEMENTS
-	szExplainText   *uint16 // pointer to a string
+	LScale          int32
+	LDefaultScale   int32
+	DwUserData      *uint32
+	DwQueryUserData *uint32
+	SzFullPath      *uint16 // pointer to a string
+	CounterPath     PDH_COUNTER_PATH_ELEMENTS
+	SzExplainText   *uint16 // pointer to a string
 	DataBuffer      *string
 }
 
 // For struct details, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/ns-pdh-pdh_counter_path_elements_w.
 type PDH_COUNTER_PATH_ELEMENTS struct {
-	szMachineName    *uint16 // pointer to a string
-	szObjectName     *uint16 // pointer to a string
-	szInstanceName   *uint16 // pointer to a string
-	szParentInstance *uint16 // pointer to a string
-	dwInstanceIndex  *uint32
-	szCounterName    *uint16 // pointer to a string
+	SzMachineName    *uint16 // pointer to a string
+	SzObjectName     *uint16 // pointer to a string
+	SzInstanceName   *uint16 // pointer to a string
+	SzParentInstance *uint16 // pointer to a string
+	DwInstanceIndex  *uint32
+	SzCounterName    *uint16 // pointer to a string
 }
 
 // Union specialization for double values
@@ -195,6 +195,7 @@ var (
 	pdh_AddEnglishCounterW        *windows.LazyProc
 	pdh_CloseQuery                *windows.LazyProc
 	pdh_CollectQueryData          *windows.LazyProc
+	pdh_ExpandWildCardPath        *windows.LazyProc
 	pdh_GetCounterInfo            *windows.LazyProc
 	pdh_GetFormattedCounterValue  *windows.LazyProc
 	pdh_GetFormattedCounterArrayW *windows.LazyProc
@@ -211,6 +212,7 @@ func init() {
 	pdh_AddEnglishCounterW = libpdhDll.NewProc("PdhAddEnglishCounterW")
 	pdh_CloseQuery = libpdhDll.NewProc("PdhCloseQuery")
 	pdh_CollectQueryData = libpdhDll.NewProc("PdhCollectQueryData")
+	pdh_ExpandWildCardPath = libpdhDll.NewProc("PdhExpandWildCardPathW")
 	pdh_GetCounterInfo = libpdhDll.NewProc("PdhGetCounterInfoW")
 	pdh_GetFormattedCounterValue = libpdhDll.NewProc("PdhGetFormattedCounterValue")
 	pdh_GetFormattedCounterArrayW = libpdhDll.NewProc("PdhGetFormattedCounterArrayW")
@@ -315,6 +317,19 @@ func PdhCloseQuery(hQuery PDH_HQUERY) uint32 {
 // displaying the correct data for the processor idle time. The second call will have a 0 return code.
 func PdhCollectQueryData(hQuery PDH_HQUERY) uint32 {
 	ret, _, _ := pdh_CollectQueryData.Call(uintptr(hQuery))
+
+	return uint32(ret)
+}
+
+// Examines the specified computer or log file and returns those counter paths that match the given counter path which contains wildcard characters.
+// For more information, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/nf-pdh-pdhexpandwildcardpathw.
+func PdhExpandWildCardPath(szDataSource *uint16, szWildCardPath *uint16, mszExpandedPathList *uint16, pcchPathListLength *uint32, dwFlags *uint32) uint32 {
+	ret, _, _ := pdh_ExpandWildCardPath.Call(
+		uintptr(unsafe.Pointer(szDataSource)),
+		uintptr(unsafe.Pointer(szWildCardPath)),
+		uintptr(unsafe.Pointer(mszExpandedPathList)),
+		uintptr(unsafe.Pointer(pcchPathListLength)),
+		uintptr(unsafe.Pointer(dwFlags)))
 
 	return uint32(ret)
 }
