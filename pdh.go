@@ -123,6 +123,32 @@ type (
 	PDH_HCOUNTER HANDLE // counter handle
 )
 
+// For struct details, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/ns-pdh-pdh_counter_info_w.
+type PDH_COUNTER_INFO struct {
+	DwLength        uint32
+	DwType          uint32
+	CVersion        uint32
+	CStatus         uint32
+	LScale          int32
+	LDefaultScale   int32
+	DwUserData      *uint32
+	DwQueryUserData *uint32
+	SzFullPath      *uint16 // pointer to a string
+	CounterPath     PDH_COUNTER_PATH_ELEMENTS
+	SzExplainText   *uint16 // pointer to a string
+	DataBuffer      *string
+}
+
+// For struct details, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/ns-pdh-pdh_counter_path_elements_w.
+type PDH_COUNTER_PATH_ELEMENTS struct {
+	SzMachineName    *uint16 // pointer to a string
+	SzObjectName     *uint16 // pointer to a string
+	SzInstanceName   *uint16 // pointer to a string
+	SzParentInstance *uint16 // pointer to a string
+	DwInstanceIndex  *uint32
+	SzCounterName    *uint16 // pointer to a string
+}
+
 // Union specialization for double values
 type PDH_FMT_COUNTERVALUE_DOUBLE struct {
 	CStatus     uint32
@@ -169,6 +195,8 @@ var (
 	pdh_AddEnglishCounterW        *windows.LazyProc
 	pdh_CloseQuery                *windows.LazyProc
 	pdh_CollectQueryData          *windows.LazyProc
+	pdh_ExpandWildCardPath        *windows.LazyProc
+	pdh_GetCounterInfo            *windows.LazyProc
 	pdh_GetFormattedCounterValue  *windows.LazyProc
 	pdh_GetFormattedCounterArrayW *windows.LazyProc
 	pdh_OpenQuery                 *windows.LazyProc
@@ -184,6 +212,8 @@ func init() {
 	pdh_AddEnglishCounterW = libpdhDll.NewProc("PdhAddEnglishCounterW")
 	pdh_CloseQuery = libpdhDll.NewProc("PdhCloseQuery")
 	pdh_CollectQueryData = libpdhDll.NewProc("PdhCollectQueryData")
+	pdh_ExpandWildCardPath = libpdhDll.NewProc("PdhExpandWildCardPathW")
+	pdh_GetCounterInfo = libpdhDll.NewProc("PdhGetCounterInfoW")
 	pdh_GetFormattedCounterValue = libpdhDll.NewProc("PdhGetFormattedCounterValue")
 	pdh_GetFormattedCounterArrayW = libpdhDll.NewProc("PdhGetFormattedCounterArrayW")
 	pdh_OpenQuery = libpdhDll.NewProc("PdhOpenQuery")
@@ -287,6 +317,31 @@ func PdhCloseQuery(hQuery PDH_HQUERY) uint32 {
 // displaying the correct data for the processor idle time. The second call will have a 0 return code.
 func PdhCollectQueryData(hQuery PDH_HQUERY) uint32 {
 	ret, _, _ := pdh_CollectQueryData.Call(uintptr(hQuery))
+
+	return uint32(ret)
+}
+
+// Examines the specified computer or log file and returns those counter paths that match the given counter path which contains wildcard characters.
+// For more information, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/nf-pdh-pdhexpandwildcardpathw.
+func PdhExpandWildCardPath(szDataSource *uint16, szWildCardPath *uint16, mszExpandedPathList *uint16, pcchPathListLength *uint32, dwFlags *uint32) uint32 {
+	ret, _, _ := pdh_ExpandWildCardPath.Call(
+		uintptr(unsafe.Pointer(szDataSource)),
+		uintptr(unsafe.Pointer(szWildCardPath)),
+		uintptr(unsafe.Pointer(mszExpandedPathList)),
+		uintptr(unsafe.Pointer(pcchPathListLength)),
+		uintptr(unsafe.Pointer(dwFlags)))
+
+	return uint32(ret)
+}
+
+// Retrieves information about a counter, such as data size, counter type, path, and user-supplied data values.
+// For more information, see https://learn.microsoft.com/en-us/windows/win32/api/pdh/nf-pdh-pdhgetcounterinfow.
+func PdhGetCounterInfo(hCounter PDH_HCOUNTER, bRetrieveExplainText uintptr, pdwBufferSize *uint32, lpBuffer *PDH_COUNTER_INFO) uint32 {
+	ret, _, _ := pdh_GetCounterInfo.Call(
+		uintptr(hCounter),
+		bRetrieveExplainText,
+		uintptr(unsafe.Pointer(pdwBufferSize)),
+		uintptr(unsafe.Pointer(lpBuffer)))
 
 	return uint32(ret)
 }
