@@ -126,12 +126,14 @@ type (
 // Union specialization for double values
 type PDH_FMT_COUNTERVALUE_DOUBLE struct {
 	CStatus     uint32
+	_           uint32
 	DoubleValue float64
 }
 
 // Union specialization for 64 bit integer values
 type PDH_FMT_COUNTERVALUE_LARGE struct {
 	CStatus    uint32
+	_          uint32
 	LargeValue int64
 }
 
